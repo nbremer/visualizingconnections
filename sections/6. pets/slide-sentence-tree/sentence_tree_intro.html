@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<style>
+    * {
+        padding: 0;
+        margin: 0;
+    }
+</style>
+<body>
+    <script src="../../../js/d3.v5.min.js"></script>
+    <script>
+
+        
+        /////////////////////////////////////////////////////
+        // SETUP CONSTANTS
+        /////////////////////////////////////////////////////
+        
+        const colors = ["#E74D6B", "#FC9298", "#5FD2B2", "#FD9752", "#4CB4C7"]
+        const parent_tree = "cat.like"
+        const highlight_tree = "cat.like.boxes"
+
+        const width = document.body.clientWidth
+        const height = window.innerHeight
+
+        //Constants
+        const sf = Math.min(window.devicePixelRatio || 1, 2)
+        const pi2 = 2 * Math.PI
+
+        //Data
+        let data
+        let root
+        let nodes, links
+        let node_by_id = {}
+        let linked_to_id = {}
+
+        /////////////////////////////////////////////////////
+
+        //Create sentence tree
+        const tree = d3.tree()
+            .separation((a, b) => (a.parent == b.parent ? 1 : 2) / a.depth)
+            .size([height, width])
+
+        //Line function between sentence tree nodes
+        const line = d3.linkHorizontal()
+            .x(d => d.x_tree)
+            .y(d => d.y_tree)
+
+        let simulation
+
+        /////////////////////////////////////////////////////
+
+        //Create nested json
+        const stratify = d3.stratify()
+            .id(d => d.id)
+            .parentId(d => d.parentId)
+
+        //Radius of the nodes
+        const radius_scale = d3.scaleSqrt()
+            .range([2, 120])
+            .clamp(true)
+
+        //Font size of the text
+        const font_scale = d3.scaleSqrt()
+            .range([8, 80])
+            .clamp(true)
+
+        /////////////////////////////////////////////////////
+        // SETUP SVG
+        /////////////////////////////////////////////////////
+
+        //Setup canvas
+        const svg = d3.select("body").append("svg")
+            .attr("width", width)
+            .attr("height", height)
+
+        const g = svg.append("g")
+            .attr("transform", "translate(" + [width/2, height/2] + ")")
+
+        const test_group = g.append("g").attr("class", "test-group").style("opacity", 0)
+        const link_group = g.append("g").attr("class", "link-group")
+        const sentence_group = g.append("g").attr("class", "sentence-group")
+
+        let sentences
+        let strings
+        let chosen_tree, chosen_sentences, chosen_sentence_tree
+
+        /////////////////////////////////////////////////////
+        // READ IN DATA
+        /////////////////////////////////////////////////////
+
+        d3.csv("cat-hierarchy.csv").then(values => {
+            //Prepare the data
+            data = numericifyData(values)
+            //Turn into a nested json structure with hierarchies
+            setupHierarchies()
+
+            //Create mappings to the nodes and links
+            createMappings()
+
+            //Select a random subgroup and one specific tree
+            takeSample() 
+
+            //Prepare the sentence tree data
+            prepareTreeData()
+
+            //Prepare the mini network data
+            runMiniNetwork()
+        })//d3.csv
+
+        /////////////////////////////////////////////////////
+        // DATA PREPARATION
+        /////////////////////////////////////////////////////
+
+        /////////////////////////////////////////////////////
+        //Turn CSV strings into numbers
+        function numericifyData(data) {
+            const start_sentences = [
+                "Why does a cat","Why do cats","Why is a cat","Why are cats","Why does my cat","Why is my cat"
+            ]
+
+            //Prepare the data
+            data.forEach(d => {
+                d.id_num = +d.id_num
+                d.index_value = +d.index_value
+                d.leaf = +d.leaf
+                d.sum_index_value = +d.sum_index_value
+                d.start_sentence = d.start_sentence.split(",").map(n => start_sentences[n-1])[0]
+            })//forEach
+
+            return data
+        }//function numericifyData
+
+        /////////////////////////////////////////////////////
+        //Prepare hierarchical data
+        function setupHierarchies() {
+            root = stratify(data)
+                .sum(d => d.index_value)
+                .sort((a, b) => a.id.localeCompare(b.id))
+
+            //Calculate the radius of each node
+            root.each(d => {
+                if(d.data.sum_index_value > 0) d.index_value_total = d.data.sum_index_value
+                else d.index_value_total = d.data.index_value
+            })//each
+        }//function setupHierarchies
+
+        /////////////////////////////////////////////////////
+        //Create node and link data
+        function createMappings() {
+            let nodes = root.descendants()
+            let links = root.links()
+
+            //Save mappings
+            node_by_id = {}
+            nodes.forEach(d => { node_by_id[d.id] = d })
+
+            //Save mappings
+            linked_to_id = {}
+            links.forEach(d => {
+                d.id = d.source.id + "," + d.target.id
+                //Save all of the edges to a specific node
+                if(!linked_to_id[d.source.id]) linked_to_id[d.source.id] = []
+                if(!linked_to_id[d.target.id]) linked_to_id[d.target.id] = []
+                linked_to_id[d.source.id].push(d.target.id)
+                linked_to_id[d.target.id].push(d.source.id)
+            })//forEach
+
+            //Save info on the lower branches and number of children
+            root.each(d => {
+                if (d.depth <= 1) d.parent_group = d.id
+                else d.parent_group = node_by_id[d.parent.id].parent_group
+            })//each
+        }//function createMappings
+
+        /////////////////////////////////////////////////////
+        //Take a random sample, plus one total tree
+        function takeSample() {
+             //Select all sentences that start with "like"
+            chosen_tree = node_by_id[parent_tree]
+            nodes = chosen_tree.descendants()
+            links = chosen_tree.links()
+            let chosen_sentence_tree = nodes.filter(d => d.data.leaf)
+
+            //Randomly select a group of sentences (not in the already chosen tree)
+            const shuffled = [...root.descendants().filter(d => d.data.leaf && chosen_sentence_tree.indexOf(d) === -1)].sort(() => 0.5 - Math.random())
+            let selected = shuffled.slice(0, 200)
+
+            chosen_sentences = chosen_sentence_tree.concat(selected)
+
+            //Calculate the initial random x and y location
+            chosen_sentences.forEach(d => {
+                d.x_start = Math.random() * width - width/2
+                d.y_start = Math.random() * height - height/2
+                d.color = colors[Math.floor(Math.random() * colors.length)]
+            })
+
+            //Set the font scale
+            let max_index = d3.max(chosen_sentences, d => d.data.sum_index_value)
+            font_scale.domain([0, max_index])
+        }//function takeSample
+
+        /////////////////////////////////////////////////////
+        //Prepare the sentence tree data
+        function prepareTreeData() {
+            //Apply a tree layout
+            tree(chosen_tree)
+
+            let max_index = d3.max(nodes, d => d.data.sum_index_value)
+            radius_scale.domain([0, max_index])
+
+            //Move things around a little
+            let max_x = d3.max(chosen_tree.descendants(), d => d.y)
+            let dx = chosen_tree.y - (chosen_tree.y - (width - max_x))/2 + 70
+            chosen_tree.each(d => {
+                d.y_tree = -height/2 + d.x
+                d.x_tree = -width/2 - dx + d.y
+
+                if(!d.color) d.color = colors[Math.floor(Math.random() * colors.length)]
+
+                //Calculate radius
+                d.r = radius_scale(d.index_value_total)
+
+                //Calculate font size for final mini network
+                let len = d.data.text.length
+                let size = d.r/3
+                size *= 10 / len
+                size += 1
+                d.font_size = Math.round(size * 0.8)
+            })
+            //Only take the leaves
+            chosen_sentence_tree = nodes.filter(d => d.data.leaf)
+            
+            //Sort alphabetically
+            chosen_sentence_tree.sort((a,b) => {
+                if(a.data.remainder > b.data.remainder) return 1
+                else if(a.data.remainder < b.data.remainder) return -1
+                else return 0
+            })
+
+            //Calculate vertical height
+            let row_w = 480
+            let col_h = 20
+            let cols_fit = Math.floor((width - 100 * 2)/row_w)
+            let rows = Math.ceil(chosen_sentence_tree.length/cols_fit)
+            chosen_sentence_tree.forEach((d,i) => {
+                d.x_sorted_list = -cols_fit*row_w/2 + Math.floor(i/rows) * row_w
+                d.y_sorted_list = (i/rows >= (cols_fit-1) ? -chosen_sentence_tree.length%rows * col_h/2 : -rows*col_h/2) + i%rows * col_h
+            })
+
+            //Calculate the full sentence width
+            chosen_tree.each(d => {
+                let len
+                const test = test_group.append("text")
+                    .style("font-size", "12px")
+                    .style("font-family", "Space Mono")
+                    
+                //Get the text length for the full sentence
+                test.text(d.data.start_sentence + " " + d.data.remainder)
+                len = test.node().getComputedTextLength()
+                d.text_width_list = len
+
+                //Get the length for the remaining text
+                test.text(d.data.text)
+                len = test.node().getComputedTextLength()
+                d.text_width_tree = len
+                d.dx_tree = d.children ? -d.text_width_tree/2 - 6 : d.text_width_tree/2 + 6
+
+                test.remove()
+
+            })//forEach
+
+        }//function prepareTreeData
+
+        /////////////////////////////////////////////////////
+        //Prepare the mini network placement
+        function runMiniNetwork() {
+            simulation = d3.forceSimulation()
+                .force("center", d3.forceCenter(0,0))
+                .force("link",
+                    d3.forceLink()
+                        .id(d => d.id)
+                        .strength(d => {
+                            let str = 1 / Math.min(linked_to_id[d.source.id].length, linked_to_id[d.target.id].length)
+                            return Math.max(0.2, str)
+                        })
+                        .distance(40)
+                        .iterations(3)
+                )
+                .force("collide",
+                    d3.forceCollide()
+                        .radius(d => d.r + Math.min(20, Math.max(5, d.r * 0.3)) )
+                        .strength(0.9)
+                )
+                .force("charge",
+                    d3.forceManyBody()
+                        .distanceMax(850)
+                        .strength(-100)
+                )
+
+            simulation
+                .nodes(nodes)
+                .stop()
+            simulation.force("link").links(links)
+
+            //Manually "tick" through the network
+            for (let i = 0; i < 300; ++i) simulation.tick()
+            //Save the final locations
+            chosen_tree.each(d => {
+                d.x_network = d.x
+                d.y_network = d.y
+            })
+        }//function runMiniNetwork
+
+        /////////////////////////////////////////////////////
+        // STEP | Setup the random sample across the page
+        /////////////////////////////////////////////////////
+
+        function stepRandomPlacement() {
+            //Create a group for each sentence and place randomly
+            let sentences = sentence_group.selectAll(".sentence")
+                .data(chosen_sentences, d => d.id)
+
+            //EXIT | Groups
+            sentences.exit().remove()
+
+            //ENTER | Groups
+            let sentences_enter = sentences.enter()
+                .append("g")
+                .attr("class", "sentence")
+                
+            //ENTER | The new circles, but hide them
+            sentences_enter.append("circle")
+                .attr("class", "sentence-circle")
+                .style("display", "none")
+
+            //ENTER | Draw the text, sized based on the index value
+            sentences_enter.append("text")
+                .attr("class","sentence-text")
+                .style("font-family", "Space Mono")
+                .style("fill", d => d.color)
+                .style("text-anchor", "middle")
+                .style("font-weight", d => d.parent_group === parent_tree ? 400 : 700)
+                
+            //MERGE
+            let sentences_merge = sentences_enter.merge(sentences)
+                .attr("transform", d => "translate(" + [d.x_start,d.y_start] + ")")
+
+            //UPDATE | Update the text elements
+            let strings = sentences_merge.selectAll(".sentence-text")
+                .attr("dy", "0.35em")
+                .style("font-size", d => font_scale(d.index_value_total))
+                .text(d => d.data.start_sentence + " " + d.data.remainder)
+                .attr("transform", "scale(0.7)")
+                .style("opacity", 0)
+
+            //UPDATE | Transition: Fade and scale the text in
+            strings.transition("texts")
+                .duration(d => Math.random() * 600 + 200)
+                .delay((d,i) => Math.random() * 3000)
+                .style("opacity", d => Math.random() * 0.7 + 0.2)
+                .attr("transform", "scale(1)")
+        }//function stepRandomPlacement
+
+        /////////////////////////////////////////////////////
+        // STEP | Show only those of the chosen tree
+        /////////////////////////////////////////////////////
+
+        function stepSortSentences() {
+            //Remove all the lines from the possible previous step
+            link_group.selectAll(".connector-line").remove()
+
+            //Connect the new data containing only the sentences from the chosen tree
+            let sentences = sentence_group.selectAll(".sentence")
+                .data(chosen_sentence_tree, d => d.id)
+
+            //EXIT | Groups
+            sentences.exit()
+                .transition("fade").duration(750)
+                .style("opacity", 0)
+                .remove()
+
+            //ENTER | Groups
+            let sentences_enter = sentences.enter()
+                .append("g")
+                .attr("class", "sentence")
+                
+            //ENTER | The new circles, but hide them (never called?)
+            sentences_enter.append("circle")
+                .attr("class", "sentence-circle")
+
+            //ENTER | Append new text (never called?)
+            sentences_enter.append("text")
+                .attr("class","sentence-text")
+                .attr("dy", "0.35em")
+                .style("font-family", "Space Mono")
+                .style("text-anchor", "middle")
+                .style("fill", d => d.color)
+                
+            //MERGE | Move to a new location in two steps
+            let sentences_merge = sentences_enter.merge(sentences)
+                .transition("groups")
+                .duration(d => 500 + Math.random() * 400)
+                .delay(d => 200 + Math.random() * 1200)
+                .attr("transform", d => "translate(" + [d.x_start, d.y_sorted_list] + ")")
+                .transition("rank")
+                .duration(d => 300 + Math.random() * 400)
+                .attr("transform", d => "translate(" + [d.x_sorted_list + d.text_width_list/2, d.y_sorted_list] + ")")
+
+            //MERGE | Hide the circles in case you move back
+            sentences_merge.select(".sentence-circle")
+                .style("display", "none")
+
+            //MERGE | Make the remaining text the same
+            sentences_merge.selectAll(".sentence-text")
+                .style("font-weight", 400)
+                .style("fill", d => d.color)
+                .text(d => d.data.start_sentence + " " + d.data.remainder)
+                .transition("texts")
+                .duration(500)
+                .style("opacity", 1)
+                .style("font-size", "12px")
+        }//function stepSortSentences
+
+        /////////////////////////////////////////////////////
+        // STEP | Highlight a certain subtree
+        /////////////////////////////////////////////////////
+
+        function stepHighlightWords() {
+            //Make the words that contain the "highlight_tree" string in bold and black
+            d3.selectAll(".sentence-text").filter(d => d.id.includes(highlight_tree))
+                .style("font-weight", 700)
+                .transition("texts").duration(300)
+                .style("fill", "black")
+        }//function stepHighlightWords
+
+        /////////////////////////////////////////////////////
+        // STEP | Move to sentence tree shape
+        /////////////////////////////////////////////////////
+
+        function stepDrawSentenceTree() {
+            /////////////////////////////////////////////////////
+            //Sentence groups 
+
+            //Connect the new data containing the full sentence tree
+            let sentences = sentence_group.selectAll(".sentence")
+                .data(nodes, d => d.id)
+
+            //EXIT | Groups (never called?)
+            sentences.exit()
+                .transition("fade").duration(750)
+                .style("opacity", 0)
+                .remove()
+
+            //ENTER | Groups
+            let sentences_enter = sentences.enter()
+                .append("g")
+                .attr("class", "sentence")
+                .attr("transform", d => "translate(" + [d.x_tree + d.dx_tree, d.y_tree] + ")")
+
+            //ENTER | The new circles
+            sentences_enter.append("circle")
+                .attr("class", "sentence-circle")
+
+            //ENTER | Append new text
+            sentences_enter.append("text")
+                .attr("class","sentence-text")
+                .attr("dy", "0.35em")
+                .style("font-family", "Space Mono")
+                .style("text-anchor", "middle")
+                .style("opacity", 0)
+                .text(d => d.data.text)
+
+            //MERGE | Move to a new location
+            let sentences_merge = sentences_enter.merge(sentences)
+                .transition("groups")
+                .duration(d => 300 + Math.random() * 200)
+                .delay(d => Math.random() * 1200)
+                .attr("transform", d => "translate(" + [d.x_tree + d.dx_tree, d.y_tree] + ")")
+
+            //MERGE | Update the new and old texts
+            sentences_merge.selectAll(".sentence-text")
+                .style("fill", d => d.id.includes(highlight_tree) ? "black" : d.color)
+                .style("font-size", "12px")
+                .text(d => d.data.text)
+                .transition("texts")
+                .duration(200)
+                .style("opacity", 1)
+
+            //MERGE | Update the new and old circles
+            sentences_merge.select(".sentence-circle")
+                .attr("cx", d => -d.dx_tree)
+                .attr("r", 2)
+                .style("display", null)
+                .style("fill", d => d.children ? "white" : d.color)
+                .style("stroke", d => d.children ? d.color : "none")
+                .style("opacity", 0)
+                .transition("circles")
+                .duration(400).delay(400)
+                .style("opacity", 1)
+
+            /////////////////////////////////////////////////////
+            //Connection lines
+
+            let connections = link_group.selectAll(".connector-line")
+                .data(links, d => d.id)
+
+            //EXIT
+            connections.exit()
+                .transition("fade").duration(750)
+                .style("opacity", 0)
+                .remove()
+
+            //ENTER
+            let connections_enter = connections.enter()
+                .append("path")
+                .attr("class", "connector-line")
+                .style("fill", "none")
+                .style("stroke", "rgb(230,230,230)")
+                .style("opacity", 0)
+
+            //MERGE
+            connections_enter.merge(connections)   
+                .transition("links").duration(500).delay(800)
+                .attr("d", line)
+                .style("opacity", 1)
+
+        }//function stepDrawSentenceTree
+
+        /////////////////////////////////////////////////////
+        // STEP | Move to mini network
+        /////////////////////////////////////////////////////
+
+        function stepDrawMiniNetwork() {
+            /////////////////////////////////////////////////////
+            //Sentence groups 
+
+            //Connect the new data containing the full sentence tree
+            let sentences = sentence_group.selectAll(".sentence")
+                .data(nodes, d => d.id)
+
+            //EXIT | Groups (never called?)
+            sentences.exit().remove()
+
+            //ENTER | Groups
+            let sentences_enter = sentences.enter()
+                .append("g")
+                .attr("class", "sentence")
+                .attr("transform", d => "translate(" + [d.x_network, d.y_network] + ")")
+
+            //ENTER | The new circles
+            sentences_enter.append("circle")
+                .attr("class", "sentence-circle")
+                .attr("r", d => d.r)
+                .style("fill", d => d.children ? "white" : d.color)
+                .style("stroke", d => d.children ? d.color : "none")
+
+            //ENTER | Append new text
+            sentences_enter.append("text")
+                .attr("class","sentence-text")
+                .attr("dy", "0.35em")
+                .style("font-family", "Space Mono")
+                .style("text-anchor", "middle")
+                .style("font-size", d => d.font_size + "px")
+                .style("opacity", d => d.font_size > 7 ? 1 : 0)
+                .style("fill", d => d.children ? d.color : "white")
+                .text(d => d.data.text)
+
+            //UPDATE | The circles
+            sentences.selectAll(".sentence-circle")
+                .transition("circles")
+                .duration(1000)
+                .attr("cx", d => 0)
+                .attr("r", d => d.r)
+
+            //UPDATE | The texts
+            sentences.selectAll(".sentence-text")
+                .transition("texts")
+                .duration(1000)
+                .style("font-size", d => d.font_size + "px")
+                .style("fill", d => d.children ? d.color : "white")
+                .style("opacity", d => d.font_size > 7 ? 1 : 0)
+
+            //MERGE | Groups | Move to a new location
+            let sentences_merge = sentences_enter.merge(sentences)
+                .transition("groups")
+                .duration(1000)
+                .attr("transform", d => "translate(" + [d.x_network, d.y_network] + ")")
+                
+            /////////////////////////////////////////////////////
+            //Connection lines
+
+            let connections = link_group.selectAll(".connector-line")
+                .data(links, d => d.id)
+
+            //EXIT
+            connections.exit()
+                .transition("fade").duration(750)
+                .style("opacity", 0)
+                .remove()
+
+            //ENTER
+            let connections_enter = connections.enter()
+                .append("path")
+                .attr("class", "connector-line")
+                .style("fill", "none")
+                .style("stroke", "rgb(230,230,230)")
+                .style("opacity", 0)
+
+            //MERGE
+            connections_enter.merge(connections)   
+                .transition("links").duration(200)
+                .style("opacity", 0)
+                .on("end", function(d) {
+                    d3.select(this).attr("d", d => {
+                        return `M${d.source.x_network},${d.source.y_network} L${d.target.x_network},${d.target.y_network}`
+                    })
+                })
+                .transition("fade").duration(500).delay(800)
+                .style("opacity", 1)
+
+        }//function stepDrawMiniNetwork
+
+        /////////////////////////////////////////////////////
+        // TRANSITION FUNCTIONS
+        /////////////////////////////////////////////////////
+
+        var _transitions = [
+                {
+                    transitionForward: () => stepRandomPlacement(),
+                    index: "onSlideChanged"
+                },
+                {
+                    transitionForward: () => stepSortSentences(),
+                    transitionBackward: () => stepRandomPlacement()
+                },
+                {
+                    transitionForward: () => stepHighlightWords(),
+                    transitionBackward: () => stepSortSentences(),
+                },
+                {
+                    transitionForward: () => stepDrawSentenceTree()
+                },
+                {
+                    transitionForward: () => stepDrawMiniNetwork()
+                }
+            ]
+
+    </script>

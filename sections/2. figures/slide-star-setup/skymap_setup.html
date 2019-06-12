@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<style>
+    * {
+        padding: 0;
+        margin: 0;
+    }
+</style>
+<body>
+    <script src="../../../js/d3.v5.min.js"></script>
+    <script>
+
+        /////////////////////////////////////////////////////
+        // SETUP CANVAS
+        /////////////////////////////////////////////////////
+
+        const width = document.body.clientWidth
+        const height = window.innerHeight
+
+        //Constants
+        const sf = Math.min(window.devicePixelRatio || 1, 2)
+        const pi2 = 2 * Math.PI
+
+        //Setup canvas
+        const canvas = d3.select("body").append("canvas")
+            .attr("width", sf * width)
+            .attr("height", sf * height)
+            .style("width", `${width}px`)
+            .style("height", `${height}px`)
+        const ctx = canvas.node().getContext("2d")
+        ctx.scale(sf, sf)
+
+        /////////////////////////////////////////////////////
+        // SETUP SCALES
+        /////////////////////////////////////////////////////
+
+        //Animation timer
+        let timer = null
+
+        //Radius of the stars
+        const radius_scale = d3.scalePow()
+            .exponent(0.7)
+            .domain([-2, 6, 11])
+        const base_scale = 500
+        setRadiusRange(base_scale)
+
+        function setRadiusRange(scale = 500) {
+            radius_scale
+                .range([9, 0.5, 0.1].map(d => {
+                    const focus_scale = d3.scaleLinear()
+                        .domain([300, 2600])
+                        .range([0.6, 1.5])
+                    return d * focus_scale(scale)
+                }))
+        }//function setRadiusRange
+
+        //Stereographic projection
+        const base_rotation = [85, -3.5]
+        const projection = d3.geoStereographic()
+            .scale(500)
+            .precision(0.1)
+            .translate([width/2, height/2])
+            .rotate(base_rotation)
+
+        const path = d3.geoPath()
+            .projection(projection)
+            .context(ctx)
+
+        function pixelPos(ra, dec, wrong = false) { return projection([-ra * 360/24, dec * (wrong ? 1/200 : 1) ]) }
+
+        /////////////////////////////////////////////////////
+        // READ IN THE DATA
+        /////////////////////////////////////////////////////
+
+        let promises = []
+        promises.push(d3.csv("data/stars.csv"))
+        promises.push(d3.csv("data/constellation_links.csv"))
+
+        let stars, const_lines
+        let star_by_id = {}
+
+        Promise.all(promises).then(values => {
+
+            /////////////////////////////////////////////////////
+            // PREPARE THE DATA
+            /////////////////////////////////////////////////////
+
+            stars = values[0]
+            const_links = values[1]
+
+            stars.forEach(d => {
+                d.hip = +d.hip
+                d.ra = +d.ra
+                d.dec = +d.dec
+                d.mag = +d.mag
+                d.absmag = +d.absmag
+                d.t_eff = +d.t_eff
+                d.constellations = +d.constellations
+            })//forEach
+
+            const_links.forEach(d => {
+                d.source = +d.source
+                d.target = +d.target
+            })//forEach
+            //Get unique constellations
+            chosen_lines = const_links.filter(d => d.const_culture === "western")
+
+            stars.forEach(d => {
+                star_by_id[d.hip] = d
+            })//forEach
+
+            /////////////////////////////////////////////////////
+            //Start out in wrong place
+            stepWrongLocation(stars)
+        })//promises
+
+        /////////////////////////////////////////////////////
+        // DRAW DARK BLUE BACKGROUND
+        /////////////////////////////////////////////////////
+
+        function backgroundColor() {
+            ctx.fillStyle = "#001540"
+            ctx.fillRect(0, 0, width, height)
+        }//function backgroundColor
+
+        /////////////////////////////////////////////////////
+        // DRAW GRATICULE
+        /////////////////////////////////////////////////////
+
+        function createGraticule(stepMinor_dec = 10, stepMinor_ra = 10) {
+            const graticule = d3.geoGraticule().stepMinor([stepMinor_ra, stepMinor_dec])
+            const grid = graticule()
+            ctx.beginPath()
+            path(grid)
+            ctx.globalAlpha = 0.8
+            ctx.lineWidth = 1
+            ctx.strokeStyle = "#5c5d79"
+            ctx.stroke()
+            ctx.closePath()
+            ctx.globalAlpha = 1
+        }//function createGraticule
+
+        /////////////////////////////////////////////////////
+        // DRAW CONSTELLATION LINES
+        /////////////////////////////////////////////////////
+
+        function drawConstellationLines(const_lines, star_by_id, line_width = 1) {
+            ctx.lineWidth = line_width
+            ctx.globalAlpha = 0.4
+            ctx.strokeStyle = "rgb(200,200,200)"
+
+            //Draw the constellation lines
+            ctx.beginPath()
+            chosen_lines.forEach(d => {
+                let s = star_by_id[d.source]
+                let t = star_by_id[d.target]
+                let pos_s = pixelPos(s.ra, s.dec)
+                let pos_t = pixelPos(t.ra, t.dec)
+
+                //If this star falls outside of the map, don't plot
+                if ((pos_s[0] < 0 || pos_s[0] > width || pos_s[1] < 0 || pos_s[1] > height)  && (pos_t[0] < 0 || pos_t[0] > width || pos_t[1] < 0 || pos_t[1] > height)) return
+
+                ctx.moveTo(pos_s[0], pos_s[1])
+                ctx.lineTo(pos_t[0], pos_t[1])
+            })//forEach
+
+            ctx.stroke()
+            ctx.closePath()
+            ctx.globalAlpha = 1
+        }//function drawConstellationLines
+
+        /////////////////////////////////////////////////////
+        // DRAW STARS
+        /////////////////////////////////////////////////////
+
+        function drawStars(stars, radius_scale, fill = "black") {
+            ctx.fillStyle = fill
+            stars.forEach(d => {
+                //If this star falls outside of the map, don't plot
+                if (d.x < 0 || d.x > width || d.y < 0 || d.y > height) return
+
+                //Star dependant settings
+                let r = radius_scale(d.mag) //Math.pow(1.2, 5 - d.mag)
+
+                //Draw the star
+                ctx.beginPath()
+                ctx.arc(d.x, d.y, r, 0, pi2)
+                ctx.fill()
+                ctx.closePath()
+            })//forEach
+        }//function drawStars
+
+        /////////////////////////////////////////////////////
+        // STEP FUNCTIONS
+        /////////////////////////////////////////////////////
+
+        /////////////////////////////////////////////////////
+        // Stars in an initially wrong location
+        function stepWrongLocation(stars) {
+            if(timer) timer.stop()
+
+            projection.rotate([0,0,90])
+            stars.forEach(d => {
+                let pos = pixelPos(d.ra, d.dec, true)
+                d.x = pos[0]
+                d.y = pos[1]
+            })//forEach
+            projection.rotate(base_rotation)
+
+            ctx.clearRect(0, 0, width, height)
+            drawStars(stars, radius_scale, "black")
+        }//function stepWrongLocation
+
+        /////////////////////////////////////////////////////
+        // Stars in a correct location
+        function stepCorrectLocation(stars) {
+            if (timer) timer.stop()
+
+            stars.forEach(d => {
+                let pos = pixelPos(d.ra, d.dec, false)
+                d.x = pos[0]
+                d.y = pos[1]
+            })//forEach
+
+            ctx.clearRect(0, 0, width, height)
+            drawStars(stars, radius_scale, "black")
+        }//function stepCorrectLocation
+
+        /////////////////////////////////////////////////////
+        // Move stars to the correct location
+        function stepMoveToCorrectLocation(stars) {
+            if(timer) timer.stop()
+            const duration = 1000
+            const ease = d3.easeCubic
+            const max_delay = 300
+
+            let pos
+            stars.forEach(s => {
+                projection.rotate([0,0,90])
+                pos = pixelPos(s.ra, s.dec, true)
+                s.sx = s.x = pos[0]
+                s.sy = s.y = pos[1]
+
+                projection.rotate(base_rotation)
+                pos = pixelPos(s.ra, s.dec, false)
+                s.tx = pos[0]
+                s.ty = pos[1]
+
+                s.delay = Math.floor(Math.random() * max_delay)
+            })//forEach
+
+            timer = d3.timer((elapsed) => {
+                //Compute how far through the animation we are (0 to 1)
+                // const t = Math.min(1, ease(elapsed / duration))
+
+                //Update point positions
+                stars.forEach(s => {
+                    //Compute how far through the animation we are (0 to 1)
+                    let t = ease(Math.min(1,Math.max(0,(elapsed - s.delay)/duration)))
+
+                    s.x = s.sx * (1 - t) + s.tx * t
+                    s.y = s.sy * (1 - t) + s.ty * t
+                })//forEach
+
+                //Draw stars
+                ctx.clearRect(0, 0, width, height)
+                drawStars(stars, radius_scale, "black")
+
+                //Stop when this animation is over
+                if (elapsed >= duration + max_delay) timer.stop()
+            })//timer
+        }//function stepMoveToCorrectLocation
+
+        /////////////////////////////////////////////////////
+        // Add graticule
+        function stepAddGraticule(stars) {
+            if (timer) timer.stop()
+
+            stars.forEach(d => {
+                let pos = pixelPos(d.ra, d.dec, false)
+                d.x = pos[0]
+                d.y = pos[1]
+            })//forEach
+
+            ctx.clearRect(0, 0, width, height)
+            backgroundColor()
+            createGraticule(10, 10)
+            drawStars(stars, radius_scale, "white")
+        }//function stepAddGraticule
+
+        /////////////////////////////////////////////////////
+        // Add constellation lines
+        function stepAddConstellations(stars, const_lines, star_by_id, direction = "forward") {
+            if (timer) timer.stop()
+
+            if(direction !== "forward") {
+                projection.scale(base_scale)
+                setRadiusRange(base_scale)
+            }//if
+
+            stars.forEach(d => {
+                let pos = pixelPos(d.ra, d.dec, false)
+                d.x = pos[0]
+                d.y = pos[1]
+            })//forEach
+
+            ctx.clearRect(0, 0, width, height)
+            backgroundColor()
+            createGraticule(10, 10)
+            drawConstellationLines(const_lines, star_by_id)
+            drawStars(stars, radius_scale, "white")
+        }//function stepAddConstellations
+
+        /////////////////////////////////////////////////////
+        // Zoom into Orion
+        function stepZoomIn(stars, const_lines, star_by_id) {
+            if(timer) timer.stop()
+
+            const duration = 1000
+            const ease = d3.easeCubic
+
+            let interpolate_scale = d3.interpolateNumber(base_scale, 2050)
+            let interpolate_line_width = d3.interpolateNumber(1, 2)
+
+            timer = d3.timer((elapsed) => {
+                //Compute how far through the animation we are (0 to 1)
+                const t = Math.min(1, ease(elapsed / duration))
+
+                //Update the projection
+                projection.scale(interpolate_scale(t))
+                setRadiusRange(interpolate_scale(t))
+
+                //Update star positions with new projection
+                stars.forEach(s => {
+                    let pos = pixelPos(s.ra, s.dec, false)
+                    s.x = pos[0]
+                    s.y = pos[1]
+                })//forEach
+
+                //Draw stars
+                ctx.clearRect(0, 0, width, height)
+                backgroundColor()
+                createGraticule(10, 10)
+                drawConstellationLines(const_lines, star_by_id, interpolate_line_width(t))
+                drawStars(stars, radius_scale, "white")
+
+                //Stop when this animation is over
+                if (t === 1) timer.stop()
+            })//timer
+        }//function stepZoomIn
+
+        /////////////////////////////////////////////////////
+        // TRANSITION FUNCTIONS
+        /////////////////////////////////////////////////////
+
+        var _transitions = [
+                {
+                    transitionForward: () => stepMoveToCorrectLocation(stars),
+                    transitionBackward: () => stepWrongLocation(stars)
+                },
+                {
+                    transitionForward: () => stepAddGraticule(stars),
+                    transitionBackward: () => stepCorrectLocation(stars)
+                },
+                {
+                    transitionForward: () => stepAddConstellations(stars, const_lines, star_by_id)
+                },
+                {
+                    transitionForward: () => stepZoomIn(stars, const_lines, star_by_id),
+                    transitionBackward: () => stepAddConstellations(stars, const_lines, star_by_id, direction = "backward")
+                }
+            ]
+
+    </script>

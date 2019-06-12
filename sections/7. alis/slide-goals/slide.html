@@ -1,0 +1,63 @@
+<section id="alis-goals" data-background-image="sections/7. alis/slide-goals/background_halfway.png">
+    <style>
+        #alis-goals #container {
+            height: 1080px;
+            display: grid;
+            grid-auto-flow: dense;
+            grid-template-rows: 1fr 1fr;
+            grid-template-columns: 1fr;
+            justify-items: center;
+            align-items: center;
+            grid-template-areas:
+                "man"
+                "mark";
+        }
+
+        #alis-goals #management { grid-area: man;}
+        #alis-goals #marketing { 
+            grid-area: mark;
+            text-shadow: 0px 0px 5px rgba(0,0,0,0.9);
+        }
+
+        #alis-goals #marketing h2 {
+            color: white;
+        }
+
+        #alis-goals #marketing li {
+            font-weight: 700;
+            color: white;
+        }
+
+        #alis-goals #container h2.type {
+            font-size: 6em;
+            text-align: center;
+        }
+
+        #alis-goals #container ul {
+            line-height: 170%;
+            list-style-type: none;
+            font-size: 1.2em;
+        }
+    </style>
+
+    <div id="container">
+        <div id="management">
+            <h2 class="type">Management</h2>
+            <ul>
+                <li>Is the OS running well?</li>
+                <lil>Give a sense of task dependencies</lil>
+                <li>Clear differentiation between domains</li>
+                <li>Provide task metadata</li>
+            </ul>
+        </div>
+
+        <div id="marketing" class="fragment fade-in">
+            <h2 class="type">Marketing</h2>
+            <ul>
+                <li>Interesting and beautiful to look at</li>
+                <li>Inline with the alis_ brand</li>
+                <li>Will appear on the homepage</li>
+            </ul>
+        </div>
+    </div>
+</section>

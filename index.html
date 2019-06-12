@@ -1,0 +1,636 @@
+<!doctype html>
+<html>
+	<head>
+        <meta charset="utf-8">
+        <!-- <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE11"> -->
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>Visualizing Connections</title>
+		<meta name="description" content="Visualizing Connections">
+		<meta name="author" content="Nadieh Bremer">
+
+		<link rel="stylesheet" href="css/reset.css">
+		<link rel="stylesheet" href="css/reveal.css">
+        <!-- Styles added by Nadieh -->
+        <link rel="stylesheet" href="lib/css/style.css">
+        
+        <!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+	<body>
+		<div class="reveal">
+            <!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+
+                <!-- **************************************************** -->
+                <!-- ******************* Introduction ******************* -->
+                <!-- **************************************************** -->
+
+                <!-- Before starting explanation -->
+                <section data-external-replace="sections/1a. intro/slide-before-starting/slide.html"></section>
+                
+                <!-- Intro slide -->
+                <section data-external-replace="sections/1a. intro/slide-title/slide.html"></section>
+
+                <!-- Collage of examples -->
+                <section id="visual-cinnamon-collage" data-background-image="sections/1a. intro/slide-collage/collage_all_projects.png"></section>
+
+                 <!-- VISUAL | Hexagon-->
+                 <section id="visual-cinnamon-hexagon" data-file="sections/1a. intro/slide-hexagon/hexagon.html" class="fig-container" data-scroll="no" data-preload>
+                    <h1 id="website-title" style="text-align: center; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">Visual Cinnamon</h1>
+                </section>
+
+                
+                <!-- **************************************************** -->
+                <!-- **************** Figures in the Sky **************** -->
+                <!-- **************************************************** -->
+
+                <!-- Intro slide -->
+                <section id="constellations-intro" class="height-1080" data-background-image="sections/2. figures/slide-intro/figures_in_the_sky.png" >
+                    <div class="connection-explanation middle-bar">
+                        <p class="connection-type">— type of connection —</p>
+                        <h1 class="connection-name">Constellations</h1>
+                        <p class="connection-abstract">star ~ star</p>
+                    </div>
+                </section>
+
+                <!-- Astronomy background -->
+                <section id="constellations-astronomy" class="height-1080" data-background-image="sections/2. figures/slide-astronomy/bubble_nebula.jpg" >
+                    <p class="credit" style="color: white;">The Bubble Nebula, NGC 7635, taken by the <a href="https://www.spacetelescope.org/images/heic1608a/" target="_blank">Hubble Space Telescope</a></p>
+                </section>
+
+                <!-- Data sketches logo -->
+                <section id="data-sketches-logo" data-background-image="sections/2. figures/slide-data-sketches/data_sketches.png">
+                </section>
+
+                <!-- Initial sketch and old sky map -->
+                <section id="constellations-sketch" class="height-1080" data-background-color="#fafafa">
+                    <div class="side-by-side">
+                        <img class="shadow" style="height: 500px;" data-src="sections/2. figures/slide-sketch/sketch.png"></img>
+                        <img class="shadow fragment" data-fragment-index="1" style="height: 800px;" data-src="sections/2. figures/slide-sketch/sky_map.jpg"></img>
+                    </div>
+                    <p class="credit fragment" data-fragment-index="1">Celestial Atlas - Plate 1 by <a href="https://commons.wikimedia.org/wiki/File:Alexander_Jamieson_Celestial_Atlas-Plate_1.jpg" target="_blank">Alexander Jamieson</a></p>
+                </section>
+
+                <!-- Stellarium -->
+                <section id="stellarium" data-background-image="sections/2. figures/slide-stellarium/stellarium_web.png"></section>
+
+                <!-- Examples of d3 skymaps -->
+                <section id="constellations-skymap-examples" class="height-1080" data-background-image="sections/2. figures/slide-skymap-examples/sky_map_examples.png" >
+                    <p class="credit">Examples from <a href="https://bl.ocks.org/mbostock/c7e85d2b47d11982db38" target="_blank">link</a>, <a href="http://bl.ocks.org/nitaku/9607405" target="_blank">link</a> & <a href="https://bl.ocks.org/pmplewa/0e36cce6c9c5edb31e18d41ad1f82c4e" target="_blank">link</a></p>
+                </section>
+                
+                <!-- VISUAL | Setting up a skymap -->
+                <section id="constellations-star-setup" data-file="sections/2. figures/slide-star-setup/skymap_setup.html" class="fig-container" data-scroll="no" data-preload></section>
+
+                <!-- Final sky map background -->
+                <section id="constellations-skymap-final" data-background-image="sections/2. figures/slide-skymap-final/skymap_background.png">
+                    <img data-src="sections/2. figures/slide-skymap-final/skymap_final_circle.png" style="--max-height: 960px;"></img>
+                </section>
+
+                <!-- Work in progress of the donut charts around stars -->
+                <section id="constellations-donuts" class="height-1080">
+                    <img class="center fragment fade-out" data-fragment-index="1" data-src="sections/2. figures/slide-donuts/donut_wip_2.png"></img>
+                    <img class="center fragment fade-in-then-out" data-fragment-index="1" data-src="sections/2. figures/slide-donuts/donut_wip_3.png"></img>
+                    <img class="center fragment fade-in-then-out" data-src="sections/2. figures/slide-donuts/donut_wip_4.png"></img>
+                </section>
+
+                <!-- Sketches of parallel lines math -->
+                <section id="constellations-sketch-math" class="height-1080" data-background-color="#fafafa">
+                    <div class="side-by-side">
+                        <img class="shadow" style="height: 500px;" data-src="sections/2. figures/slide-sketch-math/sketch_1.png"></img>
+                        <img class="shadow fragment" style="height: 800px;" data-src="sections/2. figures/slide-sketch-math/sketch_2.png"></img>
+                    </div>
+                </section>
+
+                <!-- Work in progress of the parallel lines between stars -->
+                <section id="constellations-parallel-lines" class="height-1080">
+                    <img class="center shadow" data-src="sections/2. figures/slide-parallel-lines/lines_wip_1.png"></img>
+                    <img class="center fragment fade-in" data-src="sections/2. figures/slide-parallel-lines/lines_wip_2.png"></img>
+                    <img class="center fragment fade-in" data-src="sections/2. figures/slide-parallel-lines/lines_wip_3.png"></img>
+                </section>
+
+                <!-- VISUAL TO MOVIE | Interactive skymap on Betelgeuse / Orion -->
+                <section id="constellations-betelgeuse" class="height-1080">
+                    <div class="interactive-note">
+                        <p>This slide is originally interactive, but I've turned it into a video for this online version of the presentation.</p>
+                    </div>
+                    <video class="center" data-src="sections/2. figures/slide-betelgeuse/betelgeuse_skymap.mp4" data-autoplay loop></video>
+                </section>
+
+                <!-- Some interesting sky maps of different constellations, stars and cultures -->
+                <section id="constellations-interesting-maps" class="height-1080">
+                    <img class="center" data-src="sections/2. figures/slide-interesting-skymaps/skymap_sirius.png"></img>
+                    <img class="center fragment fade-in" data-src="sections/2. figures/slide-interesting-skymaps/skymap_acrux_veado.png"></img>
+                    <img class="center fragment fade-in" data-src="sections/2. figures/slide-interesting-skymaps/skymap_dubhe.png"></img>
+                </section>
+
+                <!-- FINAL | Figures in the Sky -->
+                <section id="constellations-final" class="fig-container" data-file="http://www.datasketch.es/may/code/nadieh/" data-iframe data-preload></section>
+
+
+
+                <!-- **************************************************** -->
+                <!-- *************** Royal Constellations *************** -->
+                <!-- **************************************************** -->
+
+                <!-- Intro slide -->
+                <section id="royals-intro" class="height-1080" data-background-image="sections/3. royals/slide-intro/royal_constellations.png" >
+                    <div class="connection-explanation middle-bar">
+                        <p class="connection-type">— type of connection —</p>
+                        <h1 class="connection-name">Family</h1>
+                        <p class="connection-abstract">parent ~ child</p>
+                    </div>
+                </section>
+
+                <!-- Image of old family tree -->
+                <section id="royals-family-tree" class="height-1080">
+                    <img class="center shadow" data-src="sections/3. royals/slide-family-tree/victoria_family_tree_1901.jpg"></img>
+                    <p class="credit">Image from Wilson's Almanac?</p>
+                </section>
+
+                <!-- The website with the data -->
+                <section id="royals-website" class="height-1080">
+                    <img class="center shadow" data-src="sections/3. royals/slide-website/family_tree_website.png"></img>
+                    <p class="credit"><a href="https://webtreeprint.com/tp_famous_gedcoms.php" target="_blank">WebTreePrint</a></p>
+                </section>
+
+                <!-- Wikipedia pages of famous royals -->
+                <section id="royals-wiki" data-background-image="sections/3. royals/slide-wiki/royalty_wiki_pages.png"></section>
+
+                <!-- Photo of network sketches -->
+                <section id="royals-sketch" data-background-color="#fafafa"> 
+                    <img class="shadow" data-src="sections/3. royals/slide-sketch/royals_sketch.jpg"></img>
+                </section>
+
+                <!-- VISUAL | From hairball to network  -->
+                <section id="royals-network" class="height-1080">
+                    <div class="fig-container center full-div" data-file="sections/3. royals/slide-network/network_setup.html" data-preload data-scroll="no" >
+                </section>
+
+                <!-- FINAL | Royal constellations -->
+                <section id="royals-final" data-file="http://www.datasketch.es/october/code/nadieh/" class="fig-container" data-iframe data-iframe-black data-preload></section>
+
+
+
+                <!-- **************************************************** -->
+                <!-- *************** Guardian | Bussed Out ************** -->
+                <!-- **************************************************** -->
+
+                <!-- Intro slide -->
+                <section id="bussed-intro" class="height-1080" data-background-image="sections/4. bussed/slide-intro/bussed_out.png" >
+                    <div class="connection-explanation middle-bar">
+                        <p class="connection-type">— type of connection —</p>
+                        <h1 class="connection-name">Journeys</h1>
+                        <p class="connection-abstract">start ~ destination</p>
+                    </div>
+                </section>
+
+                <!-- Guardian logo introduction -->
+                <section id="bussed-guardian" class="height-1080" data-background-image="sections/4. bussed/slide-guardian/guardian_background.png" >
+                    <div class="middle-bar">
+                        <img class="center logo" style="width: 700px;" data-src="sections/4. bussed/slide-guardian/guardian_logo.svg"></img>
+                    </div>
+                </section>
+
+                <!-- Data cleaning and initial R plots -->
+                <section id="bussed-data" class="height-1080">
+                    <img class="center shadow fragment fade-out" data-fragment-index="2" data-src="sections/4. bussed/slide-data/fort_lauderdale_fuzzy_matching.png"></img>
+                    <img class="center shadow fragment fade-in-then-out" data-fragment-index="1" data-src="sections/4. bussed/slide-data/fuzzy_matching_remarks.png"></img>
+                    <img class="center fragment fade-in" data-fragment-index="2" data-src="sections/4. bussed/slide-data/bussed_out_data_plots.png"></img>
+                    <img class="center shadow fragment fade-in" data-src="sections/4. bussed/slide-data/map_all_lines.png"></img>
+                </section>
+
+                <!-- People in the team -->
+                <section data-external-replace="sections/4. bussed/slide-team/slide.html"></section>
+
+                <!-- Sketches of the streamlets across the map -->
+                <section id="bussed-sketch" class="height-1080">
+                    <img class="center fragment fade-out" data-fragment-index="1" data-src="sections/4. bussed/slide-sketch/us_map_streamlet_sketch_1.png"></img>
+                    <img class="center fragment fade-in" data-fragment-index="1" data-src="sections/4. bussed/slide-sketch/us_map_streamlet_sketch_2.png"></img>
+                </section>
+
+                <!-- Work in progress of the us map streamlets -->
+                <section id="bussed-map-streamlets" class="height-1080">
+                    <img class="center fragment fade-out" style="height: 800px;" data-fragment-index="1" data-src="sections/4. bussed/slide-map-streamlets/us_map_circles_same_duration.gif"></img>
+                    <img class="center fragment fade-in-then-out" style="height: 800px; top: calc(50% + 3px); left: calc(50% - 5px);" data-fragment-index="1" data-src="sections/4. bussed/slide-map-streamlets/us_map_circles_same_speed.gif"></img>
+                    <img class="center fragment fade-in-then-out" data-src="sections/4. bussed/slide-map-streamlets/us_map_streamlets_blue.gif"></img>
+                </section>
+
+                <!-- Work in progress of the us map arc paths -->
+                <section id="bussed-map-arcs" class="height-1080">
+                    <img class="center fragment fade-out" data-fragment-index="1" data-src="sections/4. bussed/slide-map-arcs/arc_wip.png"></img>
+                    <img class="center fragment fade-in-then-out" data-fragment-index="1" data-src="sections/4. bussed/slide-map-arcs/arc_blooper.png"></img>
+                    <video class="center fragment fade-in-then-out" style="height: 1020px;" data-src="sections/4. bussed/slide-map-arcs/us_map_full_arcs.mp4" data-autoplay loop></video>
+                    <video class="center fragment fade-in" style="height: 1020px; top: calc(50% - 4px); left: calc(50% - 3.5px);" data-src="sections/4. bussed/slide-map-arcs/us_map_short_arcs.mp4" data-autoplay loop></video>
+                </section>
+
+                <!-- Work in progress of the more final streamlets with 2 people pointed out -->
+                <section id="bussed-map-names" class="height-1080">
+                    <div class="interactive-note">
+                        <p>This slide originally shows a movie, but it was too big to share online</p>
+                    </div>
+                    <img class="center" data-src="sections/4. bussed/slide-map-names/us_map_streamlets_names.png"></img>
+                </section>
+
+                <!-- Work in progress of the intro part of the us map -->
+                <section id="bussed-map-intro" class="height-1080">
+                    <img class="center shadow fragment fade-out" data-fragment-index="1" data-src="sections/4. bussed/slide-map-intro/bussed_out_intro_sketch.png"></img>
+                    <video class="center shadow fragment fade-in-then-out" data-fragment-index="1" data-src="sections/4. bussed/slide-map-intro/us_map_move_across_short.mp4" data-autoplay loop></video>
+                    <img class="center fragment fade-in" data-src="sections/4. bussed/slide-map-intro/us_map_big_point_across_map_fast.gif"></img>
+                </section>
+
+                <!-- FINAL | Outward link to Bussed Out -->
+                <section data-external-replace="sections/4. bussed/slide-final/slide.html"></section>
+
+                
+
+                <!-- **************************************************** -->
+                <!-- ***** UNESCO | Dive into your Cultural Heritage **** -->
+                <!-- **************************************************** -->
+
+                <!-- Intro slide -->
+                <section id="unesco-intro" class="height-1080" data-background-image="sections/5. unesco/slide-intro/unesco_constellation.png" >
+                    <div class="connection-explanation middle-bar">
+                        <p class="connection-type">— type of connection —</p>
+                        <h1 class="connection-name">Culture</h1>
+                        <p class="connection-abstract">intangible cultural heritage ~ concepts</p>
+                    </div>
+                </section>
+
+                <!-- The original table that was made from the ICH data -->
+                <section id="unesco-original-table" class="height-1080">
+                    <img class="center fragment fade-out" data-fragment-index="1" data-src="sections/5. unesco/slide-original-table/original_table.png"></img>
+                    <img class="center fragment fade-in" data-fragment-index="1" data-src="sections/5. unesco/slide-original-table/original_table_ich.png"></img>
+                    <img class="center fragment fade-in" data-src="sections/5. unesco/slide-original-table/concept_highlight.png"></img>
+                    <div style="padding-left: 100px; position: absolute; left: 0; top: 50%; transform: translateY(-50%);">
+                        <h1>UNESCO</h1>
+                        <p style="color: #464646;">Intangible Cultural Heritage (ICH)</p>
+                    </div>
+                </section>
+                
+                <!-- Explanation of ICH with tags -->
+                <section id="unesco-ich" class="height-1080">
+                    <img class="center" data-src="sections/5. unesco/slide-ich/ich_collage.png"></img>
+                    <img class="center fragment fade-in" data-src="sections/5. unesco/slide-ich/ich_concepts.png"></img>
+                    <img class="center fragment fade-in" data-src="sections/5. unesco/slide-ich/ich_concepts_highlight.png"></img>
+                </section>
+                
+                <!-- Revealing the content of the nodes and edges -->
+                <section data-external-replace="sections/5. unesco/slide-data/slide.html"></section>
+
+                <!-- All the hairballs at the start -->
+                <section id="unesco-hairball" class="height-1080">
+                    <img class="center shadow fragment fade-out" data-fragment-index="1" data-src="sections/5. unesco/slide-hairball/hairball_1.png"></img>
+                    <img class="center fragment fade-in-then-out" data-fragment-index="1" data-src="sections/5. unesco/slide-hairball/hairball_2.png"></img>
+                    <img class="center fragment fade-in-then-out" data-src="sections/5. unesco/slide-hairball/hairball_3.png"></img> <!-- data-autoslide="1000" -->
+                    <img class="center shadow fragment fade-in-then-out" data-src="sections/5. unesco/slide-hairball/hairball_4.png"></img>
+                    <img class="center shadow fragment fade-in-then-out" data-src="sections/5. unesco/slide-hairball/hairball_6.png"></img>
+                    <img class="center shadow fragment fade-in" data-src="sections/5. unesco/slide-hairball/hairball_5.png"></img>
+                </section>
+
+                <section id="unesco-tango" class="height-1080" data-background-image="sections/5. unesco/slide-tango/tango.png">
+                    <div style="padding-left: 100px; position: absolute; left: 0; top: 50%; transform: translateY(-50%); max-width: 800px;">
+                        <h2 style="color: #E74D6B; font-size: 4.1em;">Primary Concepts</h2>
+                        <p style="color: #5e5e5e; font-size: 1.3em;">Dance, Instrumental Music & Vocal Music</p>
+                        <h2 style="margin-top: 100px;">Secondary Concepts</h2>
+                        <p style="color: #5e5e5e; font-size: 1.1em; line-height: 170%;">Artists, Choreography, Composers, Emotions, Immigrants, Intercultural communication, Orchestras, Poetry, Slavery, Working class</p>
+                    </div>
+                </section>
+
+                <!-- Finding order in the chaos with communities -->
+                <section id="unesco-communities" class="height-1080">
+                    <img class="center fragment fade-out" data-fragment-index="1" data-src="sections/5. unesco/slide-communities/communities_1.png" style="top: calc(50% + 3px); left: calc(50% - 5px);"></img>
+                    <img class="center shadow fragment fade-in-then-out" data-fragment-index="1" data-src="sections/5. unesco/slide-communities/community_explanation_1.png"></img>
+                    <img class="center shadow fragment fade-in-then-out" data-src="sections/5. unesco/slide-communities/community_explanation_2.png"></img>
+                    <img class="center shadow fragment fade-in-then-out" data-src="sections/5. unesco/slide-communities/community_explanation_3.png"></img>
+                    <img class="center fragment fade-in-then-out" data-src="sections/5. unesco/slide-communities/communities_2.png"></img>
+                    <img class="center fragment fade-in" data-src="sections/5. unesco/slide-communities/communities_3.png"></img>
+                </section>
+
+                <!-- VISUAL TO MOVIE | Setup of the two step simulation -->
+                <section id="unesco-network" class="height-1080">
+                    <div class="interactive-note">
+                        <p>This slide is originally interactive, but I've turned it into a video for this online version of the presentation.</p>
+                    </div>
+                    <video class="center" data-src="sections/5. unesco/slide-network/unesco_network_setup.mp4" data-autoplay loop></video>
+                </section>
+
+                <!-- The nodes resembling a starry sky -->
+                <section id="unesco-starry-sky" data-background-image="sections/5. unesco/slide-starry-sky/unesco_starry_sky.jpg"></section>
+
+                <!-- Creating better edges -->
+                <section id="unesco-edges" class="height-1080">
+                    <img class="center fragment fade-out" data-fragment-index="1" data-src="sections/5. unesco/slide-edges/edges_1_all_one_color.png"></img>
+                    <img class="center fragment fade-in-then-out" data-fragment-index="1" data-src="sections/5. unesco/slide-edges/edges_2_wrong.png"></img>
+                    <img class="center fragment fade-in-then-out" data-src="sections/5. unesco/slide-edges/edges_3_hover.png"></img>
+                    <img class="center fragment fade-in-then-out" data-src="sections/5. unesco/slide-edges/edges_4_hover.png"></img>
+                    <img class="center fragment fade-in" data-src="sections/5. unesco/slide-edges/edges_5_final.png"></img>
+                </section>
+
+                <!-- Work in progress of other details of the visual -->
+                <section id="unesco-details" class="height-1080">
+                    <img class="center fragment semi-fade-out" data-fragment-index="1" data-src="sections/5. unesco/slide-details/region_hover.png"></img>
+                    <img class="center fragment fade-in-then-semi-out" data-fragment-index="1" data-src="sections/5. unesco/slide-details/multi_select.png"></img>
+                    <img class="center fragment fade-in-then-semi-out" data-src="sections/5. unesco/slide-details/click_and_hover.png"></img>
+                    <img class="center fragment fade-in-then-semi-out" data-src="sections/5. unesco/slide-details/element_images.png"></img>
+                    <img class="center fragment fade-in" data-src="sections/5. unesco/slide-details/element_modal.png"></img>
+                </section>
+
+                <!-- FINAL | Dive into your Cultural Heritage -->
+                <section id="unesco-final" data-file="https://ich.unesco.org/dive/constellation/?language=en" class="fig-container" data-iframe data-preload></section> 
+
+                <!-- Showing the other three visuals -->
+                <section id="unesco-visuals" class="height-1080">
+                    <img class="center" data-fragment-index="1" data-src="sections/5. unesco/slide-other-visuals/unesco_biome.png"></img>
+                    <img class="center fragment fade-in" data-src="sections/5. unesco/slide-other-visuals/unesco_domain.png"></img>
+                    <img class="center fragment fade-in" data-src="sections/5. unesco/slide-other-visuals/unesco_domain_hover.png"></img>
+                    <img class="center fragment fade-in" data-src="sections/5. unesco/slide-other-visuals/unesco_threats.png"></img>
+                    <img class="center fragment fade-in" data-src="sections/5. unesco/slide-other-visuals/unesco_threats_hover.png"></img>
+                </section>
+
+
+
+                <!-- **************************************************** -->
+                <!-- *************** Google | Cats & Dogs *************** -->
+                <!-- **************************************************** -->
+
+                <!-- Intro slide -->
+                <section id="pets-intro" class="height-1080" data-background-image="sections/6. pets/slide-intro/why_do_cats_and_dogs.png" >
+                    <div class="connection-explanation middle-bar">
+                        <p class="connection-type">— type of connection —</p>
+                        <h1 class="connection-name">Language</h1>
+                        <p class="connection-abstract">sentence ~ word</p>
+                    </div>
+                </section>
+
+                <!-- The original concept -->
+                <section id="pets-concept" class="height-1080" data-background-image="sections/6. pets/slide-concept/snookie_box.jpg" >                
+                    <div class="middle-bar fragment fade-in">
+                        <p class="connection-type" style="text-align: center; font-style: italic;">main concept</p>
+                        <h2 style="font-size: 5.3em; margin: 0.4em auto; max-width: 1200px;">What do people search for to better understand their pets?</h2>
+                    </div>
+                </section>
+
+                <!-- Video showing the autocomplete of some "why" questions -->
+                <section id="pets-google-search" class="height-1080">
+                    <video class="center" style="height: 800px;" data-src="sections/6. pets/slide-google-search/google_search.mp4" data-autoplay loop></video>
+                </section>
+
+                <!-- Sketches of the original idea -->
+                <section id="pets-sketches" class="height-1080" data-background-color="#fafafa">
+                    <div class="side-by-side">
+                        <img class="shadow" style="--max-height: 800px;" data-src="sections/6. pets/slide-sketch/sketch_1.png"></img>
+                        <img class="shadow" style="--max-height: 800px;" data-src="sections/6. pets/slide-sketch/sketch_2.png"></img>
+                    </div>
+                </section>
+
+                <!-- VISUAL | Going from sentences to sentence trees -->
+                <section id="pets-sentence-tree-intro" data-file="sections/6. pets/slide-sentence-tree/sentence_tree_intro.html" class="fig-container" data-scroll="no" data-preload></section>
+
+                <!-- Work in progress of doomed full sentence tree -->
+                <section id="pets-tree-start" class="height-1080">
+                    <img class="center fragment fade-out" data-fragment-index="1" data-src="sections/6. pets/slide-tree-start/sentence_tree_wip_1.png"></img>
+                    <img class="center fragment fade-in-then-out" data-fragment-index="1" data-src="sections/6. pets/slide-tree-start/sentence_tree_wip_2.png"></img>
+                    <img class="center fragment fade-in-then-out" data-src="sections/6. pets/slide-tree-start/sentence_tree_wip_3.png"></img>
+                    <img class="center fragment fade-in-then-out" data-src="sections/6. pets/slide-tree-start/sentence_tree_wip_4.png"></img>
+                    <img class="center fragment fade-in-then-out" data-src="sections/6. pets/slide-tree-start/sentence_tree_wip_5.png"></img>
+                    <img class="center fragment fade-in-then-out" data-src="sections/6. pets/slide-tree-start/sentence_tree_wip_6.png"></img>
+                    <img class="center fragment fade-in" data-src="sections/6. pets/slide-tree-start/sentence_tree_wip_7.png"></img>
+                </section>
+
+                <!-- Videos of weird inner ring rotation -->
+                <section id="pets-tree-rotation" class="height-1080">
+                    <video class="center" style="height: 1020px;" data-src="sections/6. pets/slide-tree-rotation/sentence_tree_rotation_1_2x.mp4" data-autoplay loop></video>
+                </section>
+
+                <!-- Sketch of circle pack approach -->
+                <section id="pets-sketch-tree-circle-pack" class="height-1080" data-background-color="#fafafa">
+                    <img class="center shadow" data-src="sections/6. pets/slide-sketch-tree-circle-pack/circle_pack_sketch.jpg"></img>
+                    <img class="center shadow fragment fade-in" data-src="sections/6. pets/slide-sketch-tree-circle-pack/circle_pack_sketch_highlight.png"></img>
+                </section>
+
+                <!-- Work in progress of circle pack approach -->
+                <section id="pets-tree-circle-pack" class="height-1080" data-background-color="rgb(255, 250, 253)">
+                    <img class="center shadow-pink fragment fade-out" data-fragment-index="2" style="--max-height: 940px;" data-src="sections/6. pets/slide-tree-circle-pack/circle_pack_wip_1.png"></img>
+                    <img class="center shadow-pink fragment fade-in-then-out" data-fragment-index="1" data-src="sections/6. pets/slide-tree-circle-pack/circle_pack_zoom.png"></img>
+                    <img class="center shadow-pink fragment fade-in-then-out" data-fragment-index="2" style="--max-height: 940px;" data-src="sections/6. pets/slide-tree-circle-pack/circle_pack_wip_4.png"></img>
+                    <img class="center shadow-pink fragment fade-in-then-out" style="--max-height: 940px;" data-src="sections/6. pets/slide-tree-circle-pack/circle_pack_wip_2.png"></img>
+                    <img class="center shadow-pink fragment fade-in-then-out" style="--max-height: 940px;" data-src="sections/6. pets/slide-tree-circle-pack/circle_pack_wip_3.png"></img>
+                    <img class="center shadow-pink fragment fade-in-then-out" style="--max-height: 940px;" data-src="sections/6. pets/slide-tree-circle-pack/circle_pack_wip_5.png"></img>
+                    <img class="center shadow-pink fragment fade-in" style="--max-height: 940px;" data-src="sections/6. pets/slide-tree-circle-pack/circle_pack_wip_6.png"></img>
+                </section>
+
+                <!-- Work in progress of final sentence tree tests -->
+                <section id="pets-tree-child-close" class="height-1080" data-background-color="rgb(255, 250, 253)">
+                    <img class="center shadow-pink fragment fade-out" data-fragment-index="1" style="--max-height: 940px;" data-src="sections/6. pets/slide-tree-child-close/child_close_wip_1.png"></img>
+                    <img class="center shadow-pink fragment fade-in-then-out" data-fragment-index="1" style="--max-height: 940px;" data-src="sections/6. pets/slide-tree-child-close/child_close_wip_2.png"></img>
+                    <img class="center shadow-pink fragment fade-in-then-out" style="--max-height: 940px;" data-src="sections/6. pets/slide-tree-child-close/child_close_wip_3.png"></img>
+                    <img class="center shadow-pink fragment fade-in-then-out" style="--max-height: 940px;" data-src="sections/6. pets/slide-tree-child-close/child_close_wip_4.png"></img>
+                    <img class="center shadow-pink fragment fade-in-then-semi-out" style="--max-height: 940px;" data-src="sections/6. pets/slide-tree-child-close/child_close_wip_5.png"></img>
+                    <h1 class="center fragment fade-in" style="font-size: 11em; background: rgba(255,255,255,0.8); padding: 0.3em; width: 1015px; text-align: center;">o(╥﹏╥)o</h1>
+                </section>
+
+                <!-- First test for using mini networks -->
+                <section id="pets-mini-network-test" class="height-1080">
+                    <img class="center shadow fragment semi-fade-out" data-fragment-index="1" style="--max-height: 940px;" data-src="sections/6. pets/slide-mini-network-test/mini_network_test.png"></img>
+                    <img class="center shadow fragment fade-in-then-out" data-fragment-index="1" style="--max-height: 940px;" data-src="sections/6. pets/slide-mini-network-test/mini_network_blooper.png"></img>
+                    <img class="center shadow fragment fade-in" data-fragment-index="2"  style="--max-height: 940px;" data-src="sections/6. pets/slide-mini-network-test/mini_network_one_tree.png"></img>
+                </section>
+
+                <!-- The sketch for the mini network idea -->
+                <section id="pets-sketch-mini-network" class="height-1080" data-background-color="rgb(249, 244, 240)">
+                    <img class="center shadow" data-src="sections/6. pets/slide-sketch-mini-networks/sketch_mini_networks.jpg"></img>
+                </section>
+
+                <!-- VISUAL TO MOVIE | Mini network bubble packing -->
+                <section id="pets-mini-network-setup" class="height-1080">
+                    <div class="interactive-note">
+                        <p>This slide is originally interactive, but I've turned it into a video for this online version of the presentation.</p>
+                    </div>
+                    <video class="center" data-src="sections/6. pets/slide-mini-network-setup/mini_network_setup.mp4" data-autoplay loop></video>
+                </section>
+
+                <!-- Work in progress of other parts -->
+                <section id="pets-details" class="height-1080">
+                    <img class="center" data-src="sections/6. pets/slide-details/circle_pack_wip.png"></img>
+                    <img class="center fragment fade-in" data-src="sections/6. pets/slide-details/color_palettes.png"></img>
+                    <img class="center fragment fade-in" data-src="sections/6. pets/slide-details/general_layout.png"></img>
+                    <img class="center fragment fade-in" data-src="sections/6. pets/slide-details/interactions.png"></img>
+                    <img class="center fragment fade-in" data-src="sections/6. pets/slide-details/search_function.png"></img>
+                </section>
+
+                <!-- FINAL | Why do cats and dogs ...? -->
+                <section id="pets-final" data-file="https://whydocatsanddogs.com" class="fig-container" data-iframe data-preload></section>
+
+
+
+                <!-- **************************************************** -->
+                <!-- *************** alis_ | Depth Circle *************** -->
+                <!-- **************************************************** -->
+
+                <!-- Intro slide -->
+                <section id="alis-intro" class="height-1080" data-background-image="sections/7. alis/slide-intro/alis_depth_circle.png" >
+                    <div class="connection-explanation middle-bar">
+                        <p class="connection-type">— type of connection —</p>
+                        <h1 class="connection-name">Tasks</h1>
+                        <p class="connection-abstract">main task ~ sub task</p>
+                    </div>
+                </section>
+
+                <!-- alis_ logo introduction -->
+                <section id="alis-logo" class="height-1080" data-background-image="sections/7. alis/slide-alis/car_tail_lights.jpg" >                
+                    <div class="middle-bar">
+                        <img class="center logo" style="width: 600px;" data-src="sections/7. alis/slide-alis/alis_logo.svg"></img>
+                    </div>
+                </section>
+
+                <!-- alis_ visual goals -->
+                <section data-external-replace="sections/7. alis/slide-goals/slide.html"></section>
+
+                <!-- Original idea -->
+                <section id="alis-original-concept" class="height-1080">
+                    <img class="center" data-src="sections/7. alis/slide-original-concept/original_concept_rc.png"></img>
+                    <img class="center fragment fade-in" data-src="sections/7. alis/slide-original-concept/axes_alis.png"></img>
+                    <img class="center fragment fade-in" data-src="sections/7. alis/slide-original-concept/alis_result.png"></img>
+                </section>
+
+                <!-- Iterations on the original idea -->
+                <section id="alis-original-concept-iterations" class="height-1080">
+                    <img class="center fragment fade-out" data-fragment-index="1" data-src="sections/7. alis/slide-original-concept-iterations/one_line.png"></img>
+                    <img class="center fragment fade-in" data-fragment-index="1" data-src="sections/7. alis/slide-original-concept-iterations/spiral.png"></img>
+                </section>
+
+                <!-- Other designs -->
+                <section id="alis-other-designs" class="height-1080" data-background-color="#000">
+                    <img class="center fragment fade-out" data-fragment-index="1" data-src="sections/7. alis/slide-other-designs/1. circle - full.png"></img>
+                    <img class="center fragment fade-in-then-out" data-fragment-index="1" data-src="sections/7. alis/slide-other-designs/2. spokes.png"></img>
+                    <img class="center fragment fade-in-then-out" data-src="sections/7. alis/slide-other-designs/3. clusters.png"></img>
+                    <img class="center fragment fade-in-then-out" data-src="sections/7. alis/slide-other-designs/4. radial tree.png"></img>
+                    <img class="center fragment fade-in-then-out" data-src="sections/7. alis/slide-other-designs/5. spiral.png"></img>
+                    <img class="center fragment fade-in-then-out" data-src="sections/7. alis/slide-other-designs/6. spiral - 2.png"></img>
+                    <img class="center fragment fade-in-then-out" data-src="sections/7. alis/slide-other-designs/7. circle pack.png"></img>
+                    <img class="center fragment fade-in-then-out" data-src="sections/7. alis/slide-other-designs/8. circle - 2.png"></img>
+                    <img class="center fragment fade-in" data-src="sections/7. alis/slide-other-designs/9. depth circle.png"></img>
+                </section>
+
+                <!-- Comparing the circle to the depth circle -->
+                <section id="alis-circle-comparison" class="height-1080">
+                    <img class="center" data-src="sections/7. alis/slide-circle-comparison/circle_comparison.png"></img>
+                </section>
+
+                <!-- alis_ brand style -->
+                <section id="alis-brand-glow" class="height-1080" data-background-color="#000">
+                    <img class="center fragment fade-out" data-fragment-index="1" data-src="sections/7. alis/slide-glow/glow.png"></img>
+                    <img class="center fragment fade-in-then-out" data-fragment-index="1" data-src="sections/7. alis/slide-glow/lines_wobbly.png"></img>
+                    <img class="center fragment fade-in-then-out" data-src="sections/7. alis/slide-glow/lines_chaos.png"></img>
+                    <img class="center fragment fade-in" data-src="sections/7. alis/slide-glow/lines_final.png"></img>
+                </section>
+
+                <!-- Animation blooper -->
+                <section id="alis-animation" class="height-1080" data-background-color="#000">
+                    <img class="center" data-src="sections/7. alis/slide-animation/animation_bug.png"></img>
+                </section>
+
+                <!-- FINAL | Dive into your Cultural Heritage -->
+                <section id="alis-final" data-file="https://public.os.alis.fund" class="fig-container" data-iframe data-iframe-black data-preload data-scroll="no"></section> 
+
+
+
+                <!-- **************************************************** -->
+                <!-- ************************ End *********************** -->
+                <!-- **************************************************** -->
+
+                <!-- Adyen example -->
+                <section id="org-chart" class="height-1080" data-background-image="sections/1b. exit/slide-examples/adyen_org_chart.png" >
+                    <div class="connection-explanation middle-bar">
+                        <p class="connection-type">— type of connection —</p>
+                        <h1 class="connection-name">Organization</h1>
+                        <p class="connection-abstract">employee ~ manager</p>
+                    </div>
+                </section>
+
+                <!-- Cardcaptor Sakura example -->
+                <section id="ccs" class="height-1080" data-background-image="sections/1b. exit/slide-examples/ode_to_cardcaptor_sakura.png" >
+                    <div class="connection-explanation middle-bar">
+                        <p class="connection-type">— type of connection —</p>
+                        <h1 class="connection-name">Relationships</h1>
+                        <p class="connection-abstract">friend ~ friend</p>
+                    </div>
+                </section>
+
+                <!-- Dragonball Z example -->
+                <section id="dbz" class="height-1080" data-background-video="sections/1b. exit/slide-examples/fights_in_dbz.mp4" data-background-video-loop>
+                    <div class="connection-explanation middle-bar">
+                        <p class="connection-type">— type of connection —</p>
+                        <h1 class="connection-name">Experiences</h1>
+                        <p class="connection-abstract">fight ~ fight</p>
+                    </div>
+                </section>               
+
+                <!-- Collage of examples -->
+                <section id="total-collage" class="height-1080" data-background-image="sections/1b. exit/slide-collage/project_collage.png" >
+                </section>
+
+                <!-- Ending slide -->
+                <section data-external-replace="sections/1b. exit/slide-exit/slide.html"></section>
+
+                <section>That's all folks</section>
+                
+			</div>
+		</div>
+
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// Config & dependencies:
+			Reveal.initialize({
+                controls: true,
+                controlsTutorial: false,
+				progress: false,
+                history: true,
+                // autoPlayMedia: true, //All media will autoplay, regardless of individual setting
+                viewDistance: 2, // Number of slides away from the current that are visible + to lazy load iframes
+                // preloadIframes: true, //All iframes with data-src will be loaded when within the viewDistance
+                transition: 'fade', // none/fade/slide/convex/concave/zoom
+                hideCursorTime: 2000, // Time before the cursor is hidden (in ms)
+
+				// The "normal" size of the presentation, aspect ratio will be preserved
+			    // when the presentation is scaled to fit different resolutions. Can be
+			    // specified using percentage units.
+			    width: 1920, //'100%', 
+			    height: 1080, //'100%', 
+			    // Factor of the display size that should remain empty around the content
+    			margin: 0,
+				// Bounds for smallest/largest possible scale to apply to content
+    			minScale: 0.2,
+    			maxScale: 4,
+
+                // Extra plugins
+				dependencies: [
+                    // Syntax highlight for <code> elements
+                    // { src: 'plugin/highlight/highlight.js', async: true },
+
+                    // Specify external files to be loaded into a presentation
+                    { src: 'plugin/external/external.js', condition: function() { return !!document.querySelector( '[data-external],[data-external-replace]' ) } },
+
+                    // Embed dynamic javascript-based d3.js visualizations into slides
+                    { src: 'plugin/reveald3/reveald3.js' }
+                ],
+            })
+
+            //Hack to add a control button to full iframe slides
+            Reveal.addEventListener("slidechanged", function (event) {
+                if (event.currentSlide.hasAttribute("data-iframe")) {
+                    document.querySelector("aside.controls").style.display = "block"
+
+                    if(event.currentSlide.hasAttribute("data-iframe-black")) document.querySelector("aside.controls").style.color = "white"
+                    else document.querySelector("aside.controls").style.color = "black"
+                } else {
+                    document.querySelector("aside.controls").style.display = "none"
+                }//else
+            })
+		</script>
+	</body>
+</html>

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<head>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+    
+        canvas {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            filter: contrast(1.3);
+        }
+    </style>
+    <script src="../../../js/d3.v5.min.js"></script>
+</head>
+
+<body>
+    <script>
+
+                
+        /////////////////////////////////////////////////////
+        // SETUP CONSTANTS
+        /////////////////////////////////////////////////////
+
+        const colors = ["#EFB605", "#E69901", "#E44415", "#D70434", "#BA0350", "#991C71", "#723F98", "#3B61A7", "#0D898E", "#1DAC66", "#7EB852"]
+        //const colors = ["#79d3cc", "#27ccc1", "#0a78b8", "#165ba4"]
+
+        const colorScale = d3.scaleLinear()
+            .domain(d3.range(colors.length).map(d => d * 1 / (colors.length-1)))
+            .range(colors)
+            .interpolate(d3.interpolateHcl)
+
+        // const colorScale = d3.interpolateHcl(d3.hcl(20, 90, 60), d3.hcl(290, 80, 40))
+
+        const n_pos = 20
+
+        //Voronoi for the Delaunay grid on top
+        const voronoi = d3.voronoi()
+            .x(d => d.x)
+            .y(d => d.y)
+
+        const line = d3.lineRadial()
+            .angle(d => d.angle)
+            .radius(d => d.radius)
+            .curve(d3.curveBasisClosed)
+
+        /////////////////////////////////////////////////////
+        // SETUP CANVAS
+        /////////////////////////////////////////////////////
+
+        const size = Math.min(document.body.clientWidth, window.innerHeight, 800)
+        const width = size
+        const height = size
+
+        //Constants
+        const sf = Math.min(window.devicePixelRatio || 1, 2)
+        const pi2 = 2 * Math.PI
+        const SQRT3 = Math.sqrt(3)
+
+        //Setup canvas
+        const canvas = d3.select("body").append("canvas")
+            .attr("width", sf * width)
+            .attr("height", sf * height)
+            .style("width", `${width}px`)
+            .style("height", `${height}px`)
+        const ctx = canvas.node().getContext("2d")
+        ctx.scale(sf, sf)
+        line.context(ctx)
+
+        /////////////////////////////////////////////////////
+        // SETUP HEXAGON CLIP PATH
+        /////////////////////////////////////////////////////
+
+        const hexRadius = size / 2
+        const hexagonPoly = [[SQRT3 / 2, 0.5], [0, 1], [-SQRT3 / 2, 0.5], [-SQRT3 / 2, -0.5], [0, -1], [SQRT3 / 2, -0.5]]
+
+        //Create path for the Mitchell's Bounded algorithm
+        //The hexRadius and size need to be divided by 2 to (strangely) adjust for the canvas scaling
+        const hexagonPathSVG = new Path2D("M" + hexagonPoly.map(p => [p[0] * (hexRadius * 1) / sf + (size / 2) / sf, p[1] * (hexRadius * 1) / sf + (size / 2) / sf].join(",")).join(" L") + "Z")
+
+        //Create path for the canvas to clip
+        const hexPath = hexagonPoly.map(function (p) { return { 
+                x: p[0] * hexRadius + size / 2, 
+                y: p[1] * hexRadius + size / 2,
+                x_s: p[0] * hexRadius*0.97 + size / 2,
+                y_s: p[1] * hexRadius*0.97 + size / 2
+            }
+        })
+
+        //Clip the image to the hexagon
+        ctx.beginPath()
+        ctx.moveTo(hexPath[0].x, hexPath[0].y)
+        for (var j = 1; j < hexPath.length; j++) 
+            ctx.lineTo(hexPath[j].x, hexPath[j].y)
+        ctx.clip()
+
+        /////////////////////////////////////////////////////
+        // CREATE DATA
+        /////////////////////////////////////////////////////
+
+        //Create the center locations of the blobs
+        let blobs = []
+        createData()
+        
+        function createData() {
+            for (var k = 0; k < 6; k++) {
+                blobs.push({
+                    x: hexPath[k].x_s,
+                    y: hexPath[k].y_s,
+                    color: colorScale(Math.random()), 
+                    growth_speed: 0.7 + 1.5 * Math.random(),
+                    alive: true, 
+                    max_rad: size * (0.1 + Math.random() * 0.25)
+                })
+            }//for i
+
+            //Find evenly spread center locations using Mitchell's Best Candidate
+            let n_blobs = Math.round(72 * size / 750)
+            let newCircle = bestCircleGenerator(blobs, 0.1 * size, 1)
+            for (k = 6; k < n_blobs; k++) {
+                let pos = newCircle(n_blobs)
+                blobs.push({
+                    x: pos[0],
+                    y: pos[1],
+                    color: colorScale(Math.random()),
+                    growth_speed: 0.7 + 1.5 * Math.random(),
+                    alive: true,
+                    max_rad: size * (0.1 + Math.random() * 0.15)
+                })
+            }//for i
+
+            //Create the points of the circle
+            blobs.forEach(d => {
+                d.pos = []
+                for (var i = 0; i < n_pos; i++) {
+                    d.pos.push({ 
+                        radius: 0,
+                        angle: pi2/n_pos * i,
+                        growth_speed: 0.7 + Math.random() * 0.2
+                    })
+                }//for i
+            })//forEach
+        }//function createData
+
+        //Create voronoi
+        const diagram = voronoi(blobs)
+        let links = diagram.links()
+
+        /////////////////////////////////////////////////////
+        // DRAW ON CANVAS
+        /////////////////////////////////////////////////////
+
+        function draw() {
+            ctx.clearRect(0, 0, size, size)
+            ctx.globalCompositeOperation = "soft-light"
+
+            //Draw each blob
+            blobs.forEach(d => {
+                ctx.save()
+                ctx.translate(d.x, d.y)
+                ctx.fillStyle = d.color
+                ctx.beginPath()
+                line(d.pos)
+                ctx.fill()
+                ctx.closePath()
+                ctx.restore()
+            })//forEach
+
+            ctx.globalCompositeOperation = "source-over"
+
+            //Draw the thin white lines
+            ctx.beginPath()
+            links.forEach(l => {
+                ctx.moveTo(l.source.x, l.source.y)
+                ctx.lineTo(l.target.x, l.target.y)
+            })
+            ctx.strokeStyle = "rgba(255,255,255,0.4)"
+            ctx.stroke()
+
+            //Draw the small white circles
+            ctx.beginPath()
+            blobs.forEach(b => {
+                ctx.moveTo(b.x + 2.5, b.y)
+                ctx.arc(b.x, b.y, 2.5, 0, pi2, false)
+            })
+            ctx.fillStyle = "white"
+            ctx.fill()
+        }//function draw
+
+        /////////////////////////////////////////////////////
+        // UPDATE THE OUTLINE OF THE CIRCLES
+        /////////////////////////////////////////////////////
+
+        function updateCircles() {
+            blobs.forEach(d => {
+                //Only adjust the positions for the blobs that are still growing
+                if (d.alive) {
+                    let max_rad = 0
+                    d.pos.forEach(p => {
+                        // p.x += p.growth_speed * d.growth_speed * speed_increase * Math.cos(pi2 / n_pos * i) * 1 * Math.random()
+                        p.radius = p.radius + p.growth_speed * d.growth_speed * speed_increase
+                        if (p.radius > max_rad) max_rad = p.radius
+                    })//forEach
+
+                    //If the blob is bigger than its max allowed radius, make it stop growing
+                    if (max_rad > d.max_rad) d.alive = false
+                }//if
+            })//forEach
+
+            speed_increase *= 0.994
+        }//function updateCircles
+
+        /////////////////////////////////////////////////////
+        // LET THE CIRCLES GROW
+        /////////////////////////////////////////////////////
+
+        let speed_increase = 0.7
+        let timer
+
+        function runGrowth() {
+            timer = d3.timer(function (elapsed) {
+                if (elapsed > 10000) timer.stop()
+                //Update the outlines of the circles
+                updateCircles()
+                //Draw the blobs to the screen
+                draw()
+            })//timer
+        }//function runGrowth
+
+        /////////////////////////////////////////////////////
+        // Mitchell's Best Candidate
+        /////////////////////////////////////////////////////
+
+        //Adjusted from https://bl.ocks.org/philipcdavis/86080a7d3d658f4e1ee3953410edd368
+        //This already has 6 points of a hexagon shape to start with
+        function bestCircleGenerator(blobs, maxRadius, padding) {
+            let quadtree = d3.quadtree(blobs).extent([[0, 0], [size, size]])
+            let searchRadius = maxRadius * 2
+
+            return function (k) {
+                let bestX, bestY, bestDistance = 0
+
+                for (var i = 0; i < k || bestDistance < padding; ++i) {
+                    var x = Math.random() * size
+                    var y = Math.random() * size
+
+                    // // Check if point is in the SVG path
+                    // if (!ctx.isPointInPath(hexagonPathSVG, x, y)) {
+                    //     do {
+                    //         x = Math.random() * size
+                    //         y = Math.random() * size
+                    //     } while (!ctx.isPointInPath(hexagonPathSVG, x, y))
+                    // }//if
+
+                    var rx1 = x - searchRadius,
+                        rx2 = x + searchRadius,
+                        ry1 = y - searchRadius,
+                        ry2 = y + searchRadius,
+                        minDistance = maxRadius // minimum distance for this candidate
+
+                    quadtree.visit(function (node, x1, y1, x2, y2) {
+
+                        if (p = node.data) {
+                            var p,
+                                dx = x - p[0],
+                                dy = y - p[1],
+                                d2 = dx * dx + dy * dy,
+                                r2 = 10
+
+                            if (d2 < r2) return minDistance = 0, true // within a circle
+                            let d = Math.sqrt(d2) - p[2]
+                            if (d < minDistance) minDistance = d
+                        }
+                        return !minDistance || x1 > rx2 || x2 < rx1 || y1 > ry2 || y2 < ry1; // or outside search radius
+                    })
+
+                    if (minDistance > bestDistance) bestX = x, bestY = y, bestDistance = minDistance
+                }
+
+                let best = [bestX, bestY, bestDistance - padding]
+                quadtree.add(best)
+                return best
+            }//return
+        }//function bestCircleGenerator
+
+        /////////////////////////////////////////////////////
+        // TRANSITION FUNCTIONS
+        /////////////////////////////////////////////////////
+
+        var _transitions = [
+            {
+                transitionForward: () => runGrowth(),
+                index: "onSlideChanged"
+            },
+        ]
+
+    </script>

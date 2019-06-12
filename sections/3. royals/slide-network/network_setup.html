@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<head>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .link, .link-path-legend {
+        fill: none;
+        opacity: 0.6;
+        stroke-width: 1.5px;
+        }
+
+        .link-couple {
+            stroke-dasharray: 5,5;
+        }
+
+        .axis {
+            font-family: inherit;
+        }
+        .axis line, .axis path {
+            stroke: none;
+        }
+        .axis text {
+            fill: #919191;
+            font-size: 16px;
+            font-family: 'Space Mono', monospace;
+        }
+    </style>
+</head>
+<body>
+    <script src="../../../js/d3.v5.min.js"></script>
+    <script src="data/royals_links.js"></script>
+    <script src="data/royals_nodes.js"></script>
+    <script>
+
+        /////////////////////////////////////////////////////
+        // CONSTANTS
+        /////////////////////////////////////////////////////
+
+        const sf = Math.min(window.devicePixelRatio || 1, 2)
+        const pi2 = 2 * Math.PI
+
+        const currentRoyalLeaders = [
+            {id: "I1208", country: "netherlands"},
+            {id: "I1128", country: "belgium"},
+            {id: "I610", country: "denmark"},
+            {id: "I3012", country: "liechtenstein"}, //added manually
+            {id: "I3023", country: "luxembourg"}, //added manually
+            {id: "I3034", country: "monaco"}, //added manually
+            {id: "I452", country: "norway"},
+            {id: "I444", country: "spain"},
+            {id: "I603", country: "sweden"},
+            {id: "I52", country: "united kingdom"}
+        ]
+        const royals = currentRoyalLeaders.map(d => d.id)
+
+        const interestingRoyal = [
+            { id: "I1425", name: "Marie Antoinette" },
+            { id: "I37", name: "Nicholas II" },
+            { id: "I1372", name: "Eleanor of Aquitaine" },
+            { id: "I1341", name: "Louis XIV" },
+            { id: "I65", name: "Diana" },
+            { id: "I828", name: "Henry VIII" },
+            { id: "I3033", name: "Grace Kelly" },
+            { id: "I1247", name: "Mary Stuart" },
+            { id: "I1088", name: "Pauline of Wurttemberg" },
+            { id: "I21", name: "William II" },
+            { id: "I1122", name: "Umberto II" },
+            { id: "I1196", name: "Elisabeth 'Sissi'" },
+            { id: "I3086", name: "Franz Ferdinand" },
+            { id: "I643", name: "Karl I" },
+            { id: "I3099", name: "Manuel II" },
+        ]
+        const royalsInteresting = interestingRoyal.map(d => d.id)
+
+        /////////////////////////////////////////////////////
+        // SETUP CONTAINERS
+        /////////////////////////////////////////////////////
+
+        const total_width = document.body.clientWidth
+        const total_height = window.innerHeight
+        const margin = {
+            top: 150,
+            right: 100,
+            bottom: 150,
+            left: 150
+        }
+        const width = total_width - margin.left - margin.right
+        let height = total_height - margin.top - margin.bottom
+
+        //Setup canvas
+        const canvas = d3.select("body").append("canvas")
+            .attr("width", sf * total_width)
+            .attr("height", sf * total_height)
+            .style("width", `${total_width}px`)
+            .style("height", `${total_height}px`)
+        const ctx = canvas.node().getContext("2d")
+        ctx.scale(sf, sf)
+        ctx.translate(margin.left, margin.top + height/2)
+        ctx.strokeStyle = "#c4c4c4"
+
+        //SVG container
+        const svg = d3.select("body")
+            .append("svg")
+            .attr("width", total_width)
+            .attr("height", total_height)
+            .append("g")
+            .attr("transform", "translate(" + (margin.left) + "," + (margin.top + height / 2) + ")")
+    
+        /////////////////////////////////////////////////////
+        // SETUP YEAR SCALE
+        /////////////////////////////////////////////////////
+
+        const minYear = 1000 //d3.min(nodes, function(d) { return d.birth_date; }),
+        const maxYear = 2020
+        const yearSpread = [1000, 1344, 1591, 1756, 1850, 1900, 1940, 1980, 2010]
+        const yearLoc = d3.range(0, width, width / yearSpread.length).concat(width).reverse()
+
+        const yearScale = d3.scaleLinear()
+            .domain(yearSpread.reverse())
+            .range(yearLoc)
+
+        const yearScaleLinear = d3.scaleLinear()
+            .domain(d3.extent(nodes, d => d.birth_date))
+            .range([0, width - 100])
+
+        //Add axis
+        const xAxis = svg.append("g")
+            .attr("class", "axis axis--x")
+            .attr("transform", "translate(" + 0 + "," + (height / 2 + 30) + ")")
+        
+        /////////////////////////////////////////////////////
+        // SETUP SCALES
+        /////////////////////////////////////////////////////
+
+        const spreadScale = d3.scaleLinear()
+            .range([-height / 2, height / 2])
+            .domain([0, royals.length - 1])
+
+        const strengthScale = d3.scaleLinear()
+            .domain([minYear, maxYear])
+            .range([0.05, 0.075])
+            .clamp(true)
+
+        const color = d3.scaleLinear()
+            .domain(d3.extent(nodes, d => d.birth_date))
+            .range([1, 0])
+
+        const colorScale = d3.scaleLinear()
+            .range(['#fff7b9', '#fff196', '#ffea72', '#ffe348', '#fddc18'])
+            .domain([0, 1, 2, 4, 6])
+            .clamp(true)
+        const interestingRoyalColor = "#C6E2E7"
+
+        const opacityScale = d3.scaleLinear()
+            .range([1, 0.9, 0.4, 0.1, 0.1])
+            .domain([0, 3, 4, 6, 10])
+            .clamp(true)
+
+        /////////////////////////////////////////////////////
+        // PREPARE THE DATA
+        /////////////////////////////////////////////////////
+
+        //Prepare link data
+        links.forEach(d => {
+            d.id = d.source + "-" + d.target
+            d.sign = Math.random() > 0.5 ? 1 : -1
+            d.opacity = opacityScale(d.min_dist_to_royal) * 0.1
+        })//forEach
+
+        //Prepare node data
+        nodes.forEach(d => {
+            d.radius = 3
+
+            d.color = d3.interpolateViridis(color(d.birth_date))
+
+            d.opacity = opacityScale(d.min_dist_to_royal)
+            if (royalsInteresting.indexOf(d.id) > -1) { d.opacity = 1 }
+
+            d.fill = colorScale(d.min_dist_to_royal)
+            if (royalsInteresting.indexOf(d.id) > -1) { d.fill = interestingRoyalColor }
+        })//forEach
+
+        /////////////////////////////////////////////////////
+        // SETUP SIMULATION
+        /////////////////////////////////////////////////////
+
+        const simulation = d3.forceSimulation()
+            .force("link", d3.forceLink().id(d => d.id ))
+            .force("charge", d3.forceManyBody() )
+            .force("center", d3.forceCenter(width/2, 0) )
+
+        simulation
+            .nodes(nodes)
+            .on("tick", tickedStraight)
+            .force("link").links(links)
+
+        simulation.stop()
+
+        /////////////////////////////////////////////////////
+        // STEP FUNCTIONS
+        /////////////////////////////////////////////////////
+
+        /////////////////////////////////////////////////////
+        //Just chaos outside of the screen
+        function stepChaos() {
+            ctx.fillStyle = "#4f4f4f"
+
+            simulation
+                .force("link", d3.forceLink().id(d => d.id))
+                .force("charge", d3.forceManyBody())
+                .force("center", d3.forceCenter(width / 2, 0))
+                .force("x", null)
+                .force("y", null)
+                .on("tick", tickedStraight)
+
+            simulation
+                //.alpha(1)
+                .restart()
+
+            simulation.force("link")
+                .links(links)
+        }//function stepChaos
+
+        /////////////////////////////////////////////////////
+        //Create a circular hairball
+        function stepHairball() {
+            ctx.fillStyle = "#4f4f4f"
+
+            simulation
+                .alphaMin(0.001)
+                .force("link", d3.forceLink().id(d => d.id))
+                .force("charge", d3.forceManyBody().strength(-5))
+                .force("collide", null)
+                .force("center", d3.forceCenter(width / 2, 0))
+                .force("x", d3.forceX().strength(0.1))
+                .force("y", d3.forceY().strength(0.1))
+                .on("tick", tickedStraight)
+
+            simulation
+                .alpha(0.7)
+                .restart()
+
+            simulation.force("link")
+                .links(links)
+        }//function stepHairball
+
+        /////////////////////////////////////////////////////
+        //Color the circles according to birth year
+        function stepColor() {
+            //Hide axis in case you move backwards
+            xAxis
+                .transition().duration(300)
+                .style("opacity", 0)
+
+            simulation.on("tick", tickedStraightColor)
+        }//function stepColor
+
+        /////////////////////////////////////////////////////
+        //Create a stretched along birth year
+        function stepStretchX() {
+
+            //In case you move backward
+            nodes.forEach(d => { d.radius = 3 })
+
+            ///////////////////////////////////////////////////////////////////////////
+            /////////////////////////// Initiate simulation ///////////////////////////
+            ///////////////////////////////////////////////////////////////////////////
+
+            simulation
+                .alphaMin(0.15)
+                .force("link", d3.forceLink().id(d => d.id).strength(0.15))
+                .force("charge", d3.forceManyBody().distanceMax(100).strength(-30))
+                .force("center", null)
+                .force("collide", d3.forceCollide().radius(d => d.radius * 1.2))
+                .force("x", d3.forceX(d => yearScaleLinear(d.birth_date)).strength(0.99))
+                .force("y", d3.forceY().strength(0.1))
+
+            simulation
+                .alpha(0.5)
+                .on("tick", tickedStraightColor)
+                .restart()
+
+            simulation.force("link")
+                .links(links)
+
+            //Change axis
+            xAxis
+                .call(d3.axisBottom(yearScaleLinear).tickFormat(d3.format(".0f")))
+                .transition().duration(700)
+                .style("opacity", 1)
+        }//function stepStretchX
+
+        /////////////////////////////////////////////////////
+        //Also add stretch along royals
+        function stepStretchY() {
+            d3.select("body").style("background", "#FFFFFF")
+
+            nodes.forEach(d => {
+                if (royals.indexOf(d.id) > -1) { d.radius = 10 }
+                if (royalsInteresting.indexOf(d.id) > -1) { d.radius = 6 }
+            })//forEach
+
+            simulation
+                .force("link", d3.forceLink().id(d => d.id).strength(0.15))
+                .force("charge", d3.forceManyBody().distanceMax(100).strength(-30))
+                .force("center", null)
+                .force("collide", d3.forceCollide().radius(d => d.radius * (royals.indexOf(d.id) > -1 ? 1.7 : 1.2) ))
+                .force("x", d3.forceX(d => yearScale(d.birth_date)).strength(0.99))
+                .force("y", d3.forceY(d => spreadScale(d.min_offset_to_royal - 1)).strength(d => strengthScale(d.birth_date) )
+                )
+
+            simulation
+                .alpha(0.7)
+                .on("tick", tickedStraightColor)
+                .restart()
+
+            simulation.force("link")
+                .links(links)
+
+            //Change axis
+            xAxis
+                .transition().duration(1000)
+                .call(d3.axisBottom(yearScale).tickFormat(d3.format(".0f")))
+        }//function stepStretchY
+
+        /////////////////////////////////////////////////////
+        //Go to the dark starry design
+        function stepUpdateDesign() {
+            //Update slide background
+            d3.select("body").style("background", "#101420")
+
+            nodes.forEach(d => {
+                if (royals.indexOf(d.id) > -1) { d.radius = 10 }
+                if (royalsInteresting.indexOf(d.id) > -1) { d.radius = 6 }
+            })//forEach
+
+            // Set simulation in case you come in from the previous slide
+            simulation
+                .force("link", d3.forceLink().id(d => d.id).strength(0.15))
+                .force("charge", d3.forceManyBody().distanceMax(100).strength(-30))
+                .force("center", null)
+                .force("collide", d3.forceCollide().radius(d => d.radius * (royals.indexOf(d.id) > -1 ? 1.7 : 1.2) ))
+                .force("x", d3.forceX(d => yearScale(d.birth_date)).strength(0.99))
+                .force("y", d3.forceY(d => spreadScale(d.min_offset_to_royal - 1)).strength(d => strengthScale(d.birth_date))
+                )
+
+            simulation
+                .alpha(0.4)
+                .on("tick", tickedCurved)
+                .restart()
+
+            simulation.force("link")
+                .links(links)
+
+            //Show axis
+            xAxis
+                .call(d3.axisBottom(yearScale).tickFormat(d3.format(".0f")))
+                .style("opacity", 1)
+        }//function updateDesign
+
+        /////////////////////////////////////////////////////
+        // NETWORK DRAWING FUNCTIONS
+        /////////////////////////////////////////////////////
+
+        /////////////////////////////////////////////////////
+        //Straight lines - Grey circles   
+        function tickedStraight() {
+            //Clear canvas
+            ctx.clearRect(-margin.left, -margin.top - height / 2, total_width, total_height)
+
+            //Draw links
+            ctx.globalAlpha = 0.6
+            ctx.beginPath()
+            links.forEach(drawLink)
+            ctx.stroke()
+            ctx.closePath()
+
+            //Draw nodes
+            ctx.globalAlpha = 0.8
+            ctx.beginPath()
+            nodes.forEach(d => {
+                ctx.moveTo(d.x + d.radius, d.y)
+                ctx.arc(d.x, d.y, d.radius, 0, pi2)
+            })
+            ctx.fill()
+            ctx.closePath()
+        }//function tickedStraight
+
+        /////////////////////////////////////////////////////
+        //Straight lines - Colored circles
+        function tickedStraightColor() {
+            //Clear canvas
+            ctx.clearRect(-margin.left, -margin.top - height / 2, total_width, total_height)
+
+            //Draw links
+            ctx.globalAlpha = 0.6
+            ctx.beginPath()
+            links.forEach(drawLink)
+            ctx.stroke()
+            ctx.closePath()
+
+            //Draw nodes
+            ctx.globalAlpha = 0.8
+            nodes.forEach(d => {
+                ctx.beginPath()
+                ctx.moveTo(d.x + d.radius, d.y)
+                ctx.arc(d.x, d.y, d.radius, 0, pi2)
+                ctx.fillStyle = d.color
+                ctx.fill()
+                ctx.closePath()
+            })
+        }//function tickedStraightColor
+
+        /////////////////////////////////////////////////////
+        //Curved lines - Colored circles
+        function tickedCurved() {
+            //Clear canvas
+            ctx.clearRect(-margin.left, -margin.top - height / 2, total_width, total_height)
+
+            //Draw links
+            links.forEach(d => {
+
+                //Find the anchor point
+                let dx = d.target.x - d.source.x
+                let dy = d.target.y - d.source.y
+                let dist = Math.sqrt(dx * dx + dy * dy)
+                let angle_1 = Math.atan(dy / dx)
+                let angle_2 = Math.atan((dist * 0.2) / (dist / 2))
+                let dist_2 = (dist / 2) / Math.cos(angle_2)
+                let c_x = Math.cos(angle_1 + d.sign * angle_2) * dist_2
+                let c_y = Math.sin(angle_1 + d.sign * angle_2) * dist_2
+
+                ctx.globalAlpha = d.opacity
+                ctx.beginPath()
+                ctx.moveTo(d.source.x, d.source.y)
+                ctx.quadraticCurveTo(d.source.x + c_x, d.source.y + c_y, d.target.x, d.target.y)
+                ctx.stroke()
+                ctx.closePath()
+            })//forEach
+
+            //Draw nodes
+            nodes.forEach(d => {
+                ctx.beginPath()
+                ctx.moveTo(d.x + d.radius, d.y)
+                ctx.arc(d.x, d.y, d.radius, 0, pi2)
+                ctx.globalAlpha = d.opacity
+                ctx.fillStyle = d.fill
+                ctx.fill()
+                ctx.closePath()
+            })
+        }//tickedCurved
+
+        /////////////////////////////////////////////////////
+        //Draw the links
+        function drawLink(d) {
+            ctx.moveTo(d.source.x, d.source.y)
+            ctx.lineTo(d.target.x, d.target.y)
+        }//function drawLink
+
+        /////////////////////////////////////////////////////
+        // TRANSITION FUNCTIONS
+        /////////////////////////////////////////////////////
+
+        var _transitions = [
+            {
+                transitionForward: () => stepChaos(),
+                index: "onSlideChanged"
+            },
+            {
+                transitionForward: () => stepHairball(),
+                transitionBackward: () => stepChaos()
+            },
+            {
+                transitionForward: () => stepColor()
+            },
+            {
+                transitionForward: () => stepStretchX()
+            },
+            {
+                transitionForward: () => stepStretchY()
+            },
+            {
+                transitionForward: () => stepUpdateDesign()
+            },
+        ]
+
+    </script>

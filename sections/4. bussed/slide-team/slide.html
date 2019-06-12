@@ -1,0 +1,75 @@
+<section id="bussed-team" data-background-image="sections/4. bussed/slide-team/background_arches.png">
+    <style>
+        #bussed-team #container {
+            display: grid;
+            grid-auto-flow: dense;
+            grid-template-columns: 1fr 610px 1fr;
+            grid-template-rows: auto;
+            grid-row-gap: 1em;
+            justify-items: center;
+            align-items: center;
+            grid-template-areas:
+                "a photo b"
+                "c photo d"
+                "e photo f";
+
+            padding-left: 50px;
+            padding-right: 50px;
+        }
+
+        #bussed-team #person-a { grid-area: a;}
+        #bussed-team #person-b { grid-area: b;}
+        #bussed-team #person-c { grid-area: c;}
+        #bussed-team #person-d { grid-area: d;}
+        #bussed-team #person-e { grid-area: e;}
+        #bussed-team #person-f { grid-area: f;}
+        #bussed-team #photo { grid-area: photo;}
+        
+        #bussed-team #container p {
+            text-align: center !important;
+            color: rgb(140,140,140);
+            font-size: 1.2em;
+        }
+
+        #bussed-team #container .name {
+            text-align: center !important;
+            font-size: 3.0em;
+        }
+    </style>
+
+    <div id="container">
+        <div id="photo">
+            <img src="sections/4. bussed/slide-team/SeN.jpg"></img>
+        </div>
+
+        <div id="person-a" class="person">
+            <h2 class="name">Alastair Gee</h2>
+            <p>Homelessness editor & writer</p>
+        </div>
+
+        <div id="person-b" class="person">
+            <h2 class="name">Adithya Sambamurthy</h2>
+            <p>Video editor</p>
+        </div>
+
+        <div id="person-c" class="person">
+            <h2 class="name">Nadieh Bremer</h2>
+            <p>Dataviz specialist</p>
+        </div>
+
+        <div id="person-d" class="person">
+            <h2 class="name">Shirley Wu</h2>
+            <p>Dataviz specialist</p>
+        </div>
+
+        <div id="person-e" class="person">
+            <h2 class="name">Paul Lewis</h2>
+            <p>Editor</p>
+        </div>
+
+        <div id="person-f" class="person">
+            <h2 class="name">Julia Wong</h2>
+            <p>Reporter</p>
+        </div>
+    </div>
+</section>
